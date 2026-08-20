@@ -36,7 +36,7 @@
         <nacos.version>3.0.2</nacos.version>
         <mybatis-plus.version>3.5.7</mybatis-plus.version>
         <sa-token.version>1.39.0</sa-token.version>
-        <minio.version>8.5.17</minio.version>
+        <minio.version>9.0.3</minio.version>
         <!-- 证书解析（devtoolbox cert_parse/cert_match）：CSR 与 PKCS#1/SEC1 私钥 JDK 原生不认 -->
         <bouncycastle.version>1.81</bouncycastle.version>
         <!-- OpenTelemetry：覆盖 spring-boot-dependencies(3.2.5) 托管的 1.31.0，对齐 agentscope-core 2.0.0
