@@ -102,6 +102,6 @@ public class AttachmentConfig {
             new ExcelMarkdownParser(),
             new TikaDocumentParser(),
             new VisionOcrParser(visionOcrService));
-        return new AttachmentParseService(parsers, attachmentStore, attachmentFileStorage, properties);
+        return new AttachmentParseServiceImpl(parsers, attachmentStore, attachmentFileStorage, properties);
     }
 }

@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import com.richard.fyoung.customeradmin.workspace.vibecoding.service.PlanConfirmationServiceImpl;
 
 /**
  * {@link ExecutionModeMiddleware} 单测：五档模式闸门——全局回落（未指定→BYPASS/AUTO）、显式 BYPASS 透传、
@@ -106,7 +107,7 @@ class ExecutionModeMiddlewareTest {
     @Test
     void onActing_shouldPassThrough_whenUnspecifiedAndGlobalBypass() {
         AdminSandboxProperties props = props(SandboxPermissionMode.BYPASS);
-        ExecutionModeMiddleware mw = middleware(props, new ExecutionModeRegistry(), new PlanConfirmationService());
+        ExecutionModeMiddleware mw = middleware(props, new ExecutionModeRegistry(), new PlanConfirmationServiceImpl());
         ActingInput input = riskyInput();
         assertSame(input, drive(mw, input), "未指定模式 + 全局 bypass 应原样透传");
     }
@@ -116,7 +117,7 @@ class ExecutionModeMiddlewareTest {
         AdminSandboxProperties props = props(SandboxPermissionMode.HITL);
         ExecutionModeRegistry registry = new ExecutionModeRegistry();
         registry.put("coder", "s1", ExecutionMode.BYPASS);
-        ExecutionModeMiddleware mw = middleware(props, registry, new PlanConfirmationService());
+        ExecutionModeMiddleware mw = middleware(props, registry, new PlanConfirmationServiceImpl());
         ActingInput input = riskyInput();
         assertSame(input, drive(mw, input), "显式 BYPASS 应透传，压过全局 hitl");
     }
@@ -128,7 +129,7 @@ class ExecutionModeMiddlewareTest {
         AdminSandboxProperties props = props(SandboxPermissionMode.HITL);
         ExecutionModeRegistry registry = new ExecutionModeRegistry();
         registry.put("coder", "s1", ExecutionMode.AUTO);
-        ExecutionModeMiddleware mw = middleware(props, registry, new PlanConfirmationService());
+        ExecutionModeMiddleware mw = middleware(props, registry, new PlanConfirmationServiceImpl());
         ActingInput input = riskyInput();
         assertSame(input, drive(mw, input), "AUTO 命中高风险但无通道时放行原始调用交给护栏兜底");
     }
@@ -138,7 +139,7 @@ class ExecutionModeMiddlewareTest {
         AdminSandboxProperties props = props(SandboxPermissionMode.HITL);
         ExecutionModeRegistry registry = new ExecutionModeRegistry();
         registry.put("coder", "s1", ExecutionMode.AUTO);
-        PlanConfirmationService svc = new PlanConfirmationService();
+        PlanConfirmationService svc = new PlanConfirmationServiceImpl();
         PlanChannel channel = svc.openChannel("coder", "s1");
         confirmer(svc, capturePlanIds(svc, channel), true);
 
@@ -151,7 +152,7 @@ class ExecutionModeMiddlewareTest {
         AdminSandboxProperties props = props(SandboxPermissionMode.HITL);
         ExecutionModeRegistry registry = new ExecutionModeRegistry();
         registry.put("coder", "s1", ExecutionMode.AUTO);
-        PlanConfirmationService svc = new PlanConfirmationService();
+        PlanConfirmationService svc = new PlanConfirmationServiceImpl();
         PlanChannel channel = svc.openChannel("coder", "s1");
         confirmer(svc, capturePlanIds(svc, channel), false);
 
@@ -164,7 +165,7 @@ class ExecutionModeMiddlewareTest {
         AdminSandboxProperties props = props(SandboxPermissionMode.HITL);
         ExecutionModeRegistry registry = new ExecutionModeRegistry();
         registry.put("coder", "s1", ExecutionMode.AUTO);
-        PlanConfirmationService svc = new PlanConfirmationService();
+        PlanConfirmationService svc = new PlanConfirmationServiceImpl();
         PlanChannel channel = svc.openChannel("coder", "s1");
         confirmer(svc, capturePlanIds(svc, channel), false);
 
@@ -187,7 +188,7 @@ class ExecutionModeMiddlewareTest {
         AdminSandboxProperties props = props(SandboxPermissionMode.BYPASS);
         ExecutionModeRegistry registry = new ExecutionModeRegistry();
         registry.put("coder", "s1", ExecutionMode.MANUAL);
-        PlanConfirmationService svc = new PlanConfirmationService();
+        PlanConfirmationService svc = new PlanConfirmationServiceImpl();
         PlanChannel channel = svc.openChannel("coder", "s1");
         confirmer(svc, capturePlanIds(svc, channel), true);
 
@@ -202,7 +203,7 @@ class ExecutionModeMiddlewareTest {
         AdminSandboxProperties props = props(SandboxPermissionMode.BYPASS);
         ExecutionModeRegistry registry = new ExecutionModeRegistry();
         registry.put("coder", "s1", ExecutionMode.MANUAL);
-        PlanConfirmationService svc = new PlanConfirmationService();
+        PlanConfirmationService svc = new PlanConfirmationServiceImpl();
         PlanChannel channel = svc.openChannel("coder", "s1");
         confirmer(svc, capturePlanIds(svc, channel), false);
 
@@ -221,7 +222,7 @@ class ExecutionModeMiddlewareTest {
         AdminSandboxProperties props = props(SandboxPermissionMode.HITL);
         ExecutionModeRegistry registry = new ExecutionModeRegistry();
         registry.put("coder", "s1", ExecutionMode.ACCEPT_EDITS);
-        ExecutionModeMiddleware mw = middleware(props, registry, new PlanConfirmationService());
+        ExecutionModeMiddleware mw = middleware(props, registry, new PlanConfirmationServiceImpl());
         // 4 个写入（AUTO 下会触发 BATCH_MODIFY 挂起）；ACCEPT_EDITS 把编辑视为自动放行
         ActingInput input = new ActingInput(List.of(
             new ToolUseBlock("id-1", "write_file", Map.of("path", "a.java")),
@@ -236,7 +237,7 @@ class ExecutionModeMiddlewareTest {
         AdminSandboxProperties props = props(SandboxPermissionMode.HITL);
         ExecutionModeRegistry registry = new ExecutionModeRegistry();
         registry.put("coder", "s1", ExecutionMode.ACCEPT_EDITS);
-        PlanConfirmationService svc = new PlanConfirmationService();
+        PlanConfirmationService svc = new PlanConfirmationServiceImpl();
         PlanChannel channel = svc.openChannel("coder", "s1");
         confirmer(svc, capturePlanIds(svc, channel), false);
 
@@ -256,7 +257,7 @@ class ExecutionModeMiddlewareTest {
         AdminSandboxProperties props = props(SandboxPermissionMode.BYPASS);
         ExecutionModeRegistry registry = new ExecutionModeRegistry();
         registry.put("coder", "s1", ExecutionMode.PLAN);
-        ExecutionModeMiddleware mw = middleware(props, registry, new PlanConfirmationService());
+        ExecutionModeMiddleware mw = middleware(props, registry, new PlanConfirmationServiceImpl());
 
         ActingInput input = new ActingInput(List.of(
             new ToolUseBlock("id-1", "write_file", Map.of("path", "a.java", "content", "class A {}")),

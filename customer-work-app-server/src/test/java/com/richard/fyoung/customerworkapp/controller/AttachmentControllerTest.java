@@ -5,10 +5,11 @@ import com.richard.fyoung.customerwork.data.attachment.AttachmentParseStatus;
 import com.richard.fyoung.customerwork.data.attachment.ChatAttachment;
 import com.richard.fyoung.customerwork.infra.config.CustomerWorkProperties;
 import com.richard.fyoung.customerwork.safety.security.UserJwtService;
+import com.richard.fyoung.customerwork.safety.security.UserJwtServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
@@ -31,7 +32,7 @@ import static org.mockito.Mockito.when;
  * @author owlzhangfq@gmail.com
  */
 @WebFluxTest(AttachmentController.class)
-@Import({CustomerWorkProperties.class, UserJwtService.class})
+@Import({CustomerWorkProperties.class, UserJwtServiceImpl.class})
 class AttachmentControllerTest {
 
     @Autowired
@@ -40,7 +41,7 @@ class AttachmentControllerTest {
     @Autowired
     private UserJwtService jwtService;
 
-    @MockBean
+    @MockitoBean
     private AttachmentParseService attachmentParseService;
 
     /** 构造一条解析成功的附件记录。 */

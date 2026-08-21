@@ -27,7 +27,6 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.18.0</version>
         </dependency>
         <!-- Spring MVC（非 WebFlux）：与 customer-channel 同一手法接入 starter -->
         <dependency>
@@ -44,7 +43,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
+            <artifactId>spring-boot-starter-aspectj</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -55,7 +54,7 @@
         <!-- RBAC 权限框架（需求文档技术选型锁定） -->
         <dependency>
             <groupId>cn.dev33</groupId>
-            <artifactId>sa-token-spring-boot3-starter</artifactId>
+            <artifactId>sa-token-spring-boot4-starter</artifactId>
             <version>${sa-token.version}</version>
         </dependency>
 
@@ -66,10 +65,15 @@
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
 
-        <!-- ORM（需求文档技术选型锁定），带 spring-boot3-starter 自动装配 DataSource/SqlSessionFactory -->
+        <!-- ORM（需求文档技术选型锁定），使用 Boot 4 starter 自动装配 DataSource/SqlSessionFactory -->
         <dependency>
             <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+            <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
+            <version>${mybatis-plus.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-jsqlparser</artifactId>
             <version>${mybatis-plus.version}</version>
         </dependency>
 
@@ -79,7 +83,7 @@
             <artifactId>flyway-mysql</artifactId>
         </dependency>
 
-        <!-- MySQL 驱动（HikariCP 随 mybatis-plus-spring-boot3-starter 传递） -->
+        <!-- MySQL 驱动（HikariCP 随 MyBatis-Plus Boot 4 starter 传递） -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
@@ -123,11 +127,10 @@
         <dependency>
             <groupId>org.redisson</groupId>
             <artifactId>redisson</artifactId>
-            <version>3.52.0</version>
         </dependency>
 
         <!-- 登录态持久化：Sa-Token 默认 DAO 把 token 存 JVM 内存，服务一重启全部用户被踢下线。
-             换成官方 Redis 插件（SaTokenDaoRedisJackson，由 AdminSaTokenDaoConfig 显式装配），
+             换成官方 RedisTemplate 插件（SaTokenDaoForRedisTemplate，由 AdminSaTokenDaoConfig 显式装配），
              传递引入 spring-boot-starter-data-redis 提供 RedisConnectionFactory（Lettuce，惰性连接，
              连接参数见 application.yml 的 spring.data.redis.*，与 admin.redis.* 取同一批环境变量）。
 
@@ -137,7 +140,7 @@
              字段名的隐式耦合——同样的传递依赖代价，不如走官方主线这条被验证最多的路。 -->
         <dependency>
             <groupId>cn.dev33</groupId>
-            <artifactId>sa-token-redis-jackson</artifactId>
+            <artifactId>sa-token-redis-template</artifactId>
             <version>${sa-token.version}</version>
         </dependency>
 
@@ -195,6 +198,17 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.vaadin.external.google</groupId>
+                    <artifactId>android-json</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

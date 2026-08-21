@@ -26,6 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import com.richard.fyoung.customerwork.capability.dialog.DialogStageServiceImpl;
+import com.richard.fyoung.customerwork.capability.slotfilling.SlotFillingServiceImpl;
+import com.richard.fyoung.customerwork.capability.approval.PendingApprovalServiceImpl;
 
 /**
  * 会话诊断聚合服务单测：多源聚合、按 sessionId 过滤、审计后端可选、单源失败降级不崩溃。
@@ -49,14 +52,14 @@ class DiagnosticServiceTest {
         SessionStateManager stateManager = mock(SessionStateManager.class);
         when(stateManager.exists("tenantA", sessionId)).thenReturn(true);
 
-        DialogStageService dialog = new DialogStageService();
+        DialogStageService dialog = new DialogStageServiceImpl();
         dialog.set(sessionId, DialogStage.PROCESSING);
 
-        SlotFillingService slot = new SlotFillingService();
+        SlotFillingService slot = new SlotFillingServiceImpl();
         // 一轮未收齐 → 留下"正在追问 orderId"的进度
         slot.submit(sessionId, SlotFillingForm.refundForm(), "我要退款");
 
-        PendingApprovalService approvals = new PendingApprovalService();
+        PendingApprovalService approvals = new PendingApprovalServiceImpl();
         approvals.submit(ApprovalType.REFUND, sessionId, "order-1", null, "质量问题");
         approvals.submit(ApprovalType.REFUND, "other:conv-9", "order-2", null, "无关会话");
 
@@ -67,7 +70,7 @@ class DiagnosticServiceTest {
         AuditQuery auditQuery = (sid, limit) ->
             List.of(new AuditRecord("tool-call", "CustomerServiceAgent-" + sid, "{}", 1L));
 
-        DiagnosticService service = new DiagnosticService(
+        DiagnosticService service = new DiagnosticServiceImpl(
             stateManager, dialog, slot, approvals, factLog, tenantResolver, auditProvider(auditQuery));
 
         SessionDiagnostic d = service.diagnose(sessionId);
@@ -88,9 +91,9 @@ class DiagnosticServiceTest {
     @Test
     void auditUnavailableWhenNoQueryBackend(@TempDir Path tempDir) {
         SessionStateManager stateManager = mock(SessionStateManager.class);
-        DiagnosticService service = new DiagnosticService(
-            stateManager, new DialogStageService(), new SlotFillingService(),
-            new PendingApprovalService(), new InMemoryTestFactLog(), tenantResolver,
+        DiagnosticService service = new DiagnosticServiceImpl(
+            stateManager, new DialogStageServiceImpl(), new SlotFillingServiceImpl(),
+            new PendingApprovalServiceImpl(), new InMemoryTestFactLog(), tenantResolver,
             auditProvider(null));  // 无可查询审计后端（如仅 LoggingAuditSink）
 
         SessionDiagnostic d = service.diagnose("conv-x");
@@ -104,9 +107,9 @@ class DiagnosticServiceTest {
         // 让 state 源抛错，模拟 MySQL 瞬断
         when(stateManager.exists(anyString(), anyString())).thenThrow(new RuntimeException("db down"));
 
-        DiagnosticService service = new DiagnosticService(
-            stateManager, new DialogStageService(), new SlotFillingService(),
-            new PendingApprovalService(), new InMemoryTestFactLog(), tenantResolver,
+        DiagnosticService service = new DiagnosticServiceImpl(
+            stateManager, new DialogStageServiceImpl(), new SlotFillingServiceImpl(),
+            new PendingApprovalServiceImpl(), new InMemoryTestFactLog(), tenantResolver,
             auditProvider(null));
 
         SessionDiagnostic d = service.diagnose("conv-x");

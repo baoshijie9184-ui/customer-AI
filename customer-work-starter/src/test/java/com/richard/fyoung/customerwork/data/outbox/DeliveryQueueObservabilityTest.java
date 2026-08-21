@@ -6,11 +6,12 @@ import com.richard.fyoung.customerwork.capability.deadletter.InMemoryDeadLetterS
 import com.richard.fyoung.customerwork.infra.config.CustomerWorkProperties;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.actuate.health.Status;
+import org.springframework.boot.health.contributor.Status;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.richard.fyoung.customerwork.capability.deadletter.DeadLetterServiceImpl;
 
 /** 可靠投递队列的指标与健康状态门控。 */
 class DeliveryQueueObservabilityTest {
@@ -30,7 +31,7 @@ class DeliveryQueueObservabilityTest {
                 // 成功即可。
             }
         };
-        OutboxService service = new OutboxService(store, new CustomerWorkProperties().getOutbox(),
+        OutboxService service = new OutboxServiceImpl(store, new CustomerWorkProperties().getOutbox(),
             List.of(handler), registry);
 
         service.publish("test", "A-1", "{}");
@@ -61,7 +62,7 @@ class DeliveryQueueObservabilityTest {
                 throw new IllegalStateException("down");
             }
         };
-        OutboxService service = new OutboxService(outboxStore, properties.getOutbox(), List.of(failing));
+        OutboxService service = new OutboxServiceImpl(outboxStore, properties.getOutbox(), List.of(failing));
         InMemoryDeadLetterStore deadLetterStore = new InMemoryDeadLetterStore();
         service.publish("test", "A-1", "{}");
         service.dispatchDue();
@@ -78,7 +79,7 @@ class DeliveryQueueObservabilityTest {
         SimpleMeterRegistry registry = new SimpleMeterRegistry();
         CustomerWorkProperties properties = new CustomerWorkProperties();
         properties.getDeadLetter().setBaseBackoffMs(0L);
-        DeadLetterService service = new DeadLetterService(new InMemoryDeadLetterStore(),
+        DeadLetterService service = new DeadLetterServiceImpl(new InMemoryDeadLetterStore(),
             properties.getDeadLetter(), List.of(new com.richard.fyoung.customerwork.capability.deadletter.DeadLetterHandler() {
                 @Override
                 public String type() {

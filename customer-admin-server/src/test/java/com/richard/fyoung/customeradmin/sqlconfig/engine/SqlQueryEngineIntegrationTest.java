@@ -104,7 +104,7 @@ class SqlQueryEngineIntegrationTest {
 
         AdminSqlConfigProperties properties = new AdminSqlConfigProperties();
         SqlDatasourceConnectionManager connectionManager = new SqlDatasourceConnectionManager(datasourceMapper, cryptoUtil);
-        service = new SqlQueryService(defineMapper, paramMapper, transformMapper, connectionManager,
+        service = new SqlQueryServiceImpl(defineMapper, paramMapper, transformMapper, connectionManager,
             new FieldTransformer(), properties);
     }
 

@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,80 +33,14 @@ import java.util.Optional;
  * 本类负责让待筛队列里有东西可筛。</p>
  * @author owlzhangfq@gmail.com
  */
-@Service
-public class FeedbackService {
-
-    private static final Logger log = LoggerFactory.getLogger(FeedbackService.class);
-
-    private static final String FACT_TYPE = "negative-feedback";
-
-    private final FeedbackStore store;
-    private final FactLog factLog;
-    private final TenantResolver tenantResolver;
-    private final CustomerWorkProperties properties;
-    private final ObjectProvider<BadcaseService> badcaseServiceProvider;
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    public FeedbackService(FeedbackStore store, FactLog factLog, TenantResolver tenantResolver,
-                           CustomerWorkProperties properties,
-                           ObjectProvider<BadcaseService> badcaseServiceProvider) {
-        this.store = store;
-        this.factLog = factLog;
-        this.tenantResolver = tenantResolver;
-        this.properties = properties;
-        this.badcaseServiceProvider = badcaseServiceProvider;
-    }
-
-    /** 提交一条消息级反馈；同一 messageId 重复提交按最新一次覆盖。DOWN 类型额外沉淀事实供飞轮复盘。 */
-    public MessageFeedback submit(String sessionId, String messageId, FeedbackType type, String comment) {
-        MessageFeedback feedback = new MessageFeedback(messageId, sessionId, type, comment,
-            System.currentTimeMillis());
-        store.save(feedback);
-        log.info("feedback submitted: messageId={}, sessionId={}, type={}", messageId, sessionId, type);
-        if (type == FeedbackType.DOWN) {
-            recordNegativeFeedback(feedback);
-            collectBadcase(feedback);
-        }
-        return feedback;
-    }
-
-    public Optional<MessageFeedback> find(String messageId) {
-        return store.find(messageId);
-    }
-
-    public List<MessageFeedback> findBySession(String sessionId) {
-        return store.findBySession(sessionId);
-    }
-
-    private void recordNegativeFeedback(MessageFeedback feedback) {
-        try {
-            Map<String, Object> fact = new LinkedHashMap<>();
-            fact.put("type", FACT_TYPE);
-            fact.put("sessionId", feedback.sessionId());
-            fact.put("messageId", feedback.messageId());
-            fact.put("comment", feedback.comment());
-            factLog.append(tenantResolver.resolve(feedback.sessionId()), mapper.writeValueAsString(fact));
-        } catch (Exception e) {
-            log.error("record negative feedback fact failed, errorCode={}, messageId={}",
-                "FEEDBACK-RECORD-FAIL", feedback.messageId(), e);
-        }
-    }
+public interface FeedbackService {
 
     /**
-     * 登记进 badcase 待筛队列。
-     *
-     * <p>{@link BadcaseService#record} 自身已吞掉异常（旁路能力不阻断用户提交反馈），
-     * 这里只负责判断开关与 Bean 是否可用。</p>
+     * 提交一条消息级反馈；同一 messageId 重复提交按最新一次覆盖。DOWN 类型额外沉淀事实供飞轮复盘。
      */
-    private void collectBadcase(MessageFeedback feedback) {
-        if (!properties.getBadcase().isAutoCollect()) {
-            return;
-        }
-        BadcaseService badcaseService = badcaseServiceProvider.getIfAvailable();
-        if (badcaseService == null) {
-            return;
-        }
-        badcaseService.record(BadcaseSource.NEGATIVE_FEEDBACK, feedback.sessionId(),
-            feedback.messageId(), feedback.comment());
-    }
+    public abstract MessageFeedback submit(String sessionId, String messageId, FeedbackType type, String comment);
+
+    public abstract Optional<MessageFeedback> find(String messageId);
+
+    public abstract List<MessageFeedback> findBySession(String sessionId);
 }

@@ -2,8 +2,8 @@ package com.richard.fyoung.customerwork.infra.health;
 
 import com.richard.fyoung.customerwork.infra.config.CustomerWorkProperties;
 import io.agentscope.core.state.AgentStateStore;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.stereotype.Component;
 
 /**

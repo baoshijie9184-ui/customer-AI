@@ -32,7 +32,7 @@ class KnowledgeGapServiceTest {
     void setUp() {
         store = new InMemoryKnowledgeGapStore();
         properties = new KnowledgeGapProperties();
-        service = new KnowledgeGapService(store, new TenantResolver(new CustomerWorkProperties()), properties);
+        service = new KnowledgeGapServiceImpl(store, new TenantResolver(new CustomerWorkProperties()), properties);
     }
 
     @Test

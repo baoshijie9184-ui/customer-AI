@@ -26,7 +26,7 @@ class UserAuthWebFilterTest {
     private UserJwtService jwtService() {
         CustomerWorkProperties props = new CustomerWorkProperties();
         props.getUserAuth().setJwtSecret("filter-test-secret");
-        return new UserJwtService(props);
+        return new UserJwtServiceImpl(props);
     }
 
     private WebFilterChain recordingChain(AtomicBoolean invoked) {

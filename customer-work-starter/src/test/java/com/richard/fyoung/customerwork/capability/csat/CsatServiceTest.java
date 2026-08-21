@@ -25,7 +25,7 @@ class CsatServiceTest {
     @BeforeEach
     void setUp() {
         store = new InMemoryCsatStore();
-        service = new CsatService(store, new TenantResolver(new CustomerWorkProperties()));
+        service = new CsatServiceImpl(store, new TenantResolver(new CustomerWorkProperties()));
     }
 
     @Test

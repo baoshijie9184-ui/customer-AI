@@ -43,7 +43,7 @@ class AvatarStorageServiceTest {
         avatar.setMaxSizeBytes(maxBytes);
         avatar.setUrlPrefix("/api/avatars/");
         fileStorage = mock(AttachmentFileStorage.class);
-        return new AvatarStorageService(properties, fileStorage);
+        return new AvatarStorageServiceImpl(properties, fileStorage);
     }
 
     private FilePart filePart(String filename, String... chunks) {

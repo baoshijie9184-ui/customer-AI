@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,58 +15,21 @@ import java.util.UUID;
  * {@link Optional#empty()}——不向调用方泄露失败的具体原因（避免用户名枚举）。</p>
  * @author owlzhangfq@gmail.com
  */
-public class UserAccountService {
-
-    private static final Logger log = LoggerFactory.getLogger(UserAccountService.class);
-
-    private static final String ID_PREFIX = "U-";
-
-    private final UserAccountStore store;
-    private final PasswordEncoder passwordEncoder;
-
-    public UserAccountService(UserAccountStore store) {
-        this.store = store;
-        this.passwordEncoder = new BCryptPasswordEncoder();
-    }
+public interface UserAccountService {
 
     /**
      * 注册新账户：用户名唯一，密码 BCrypt 加密后落库。
      *
      * @throws IllegalStateException 用户名已存在
      */
-    public UserAccount register(String username, String rawPassword, String nickname, String phone) {
-        if (store.findByUsername(username).isPresent()) {
-            throw new IllegalStateException("username already exists: " + username);
-        }
-        String id = ID_PREFIX + UUID.randomUUID();
-        String hash = passwordEncoder.encode(rawPassword);
-        UserAccount account = UserAccount.create(id, username, hash, nickname, phone);
-        store.save(account);
-        log.info("user registered: id={}, username={}", id, username);
-        return account;
-    }
+    public abstract UserAccount register(String username, String rawPassword, String nickname, String phone);
 
     /**
      * 登录校验：用户名存在、账户启用、密码匹配三者全满足才返回账户，否则统一返回 empty。
      */
-    public Optional<UserAccount> verifyLogin(String username, String rawPassword) {
-        Optional<UserAccount> found = store.findByUsername(username);
-        if (found.isEmpty()) {
-            return Optional.empty();
-        }
-        UserAccount account = found.get();
-        if (!account.isActive()) {
-            return Optional.empty();
-        }
-        if (!passwordEncoder.matches(rawPassword, account.getPasswordHash())) {
-            return Optional.empty();
-        }
-        return Optional.of(account);
-    }
+    public abstract Optional<UserAccount> verifyLogin(String username, String rawPassword);
 
-    public Optional<UserAccount> findById(String id) {
-        return store.findById(id);
-    }
+    public abstract Optional<UserAccount> findById(String id);
 
     /**
      * 更新用户头像：查出账户 → 充血实体自改头像 → 持久化。
@@ -75,12 +37,5 @@ public class UserAccountService {
      * @throws IllegalStateException 账户不存在
      * @return 已更新头像的账户
      */
-    public UserAccount updateAvatar(String userId, String avatarUrl) {
-        UserAccount account = store.findById(userId)
-            .orElseThrow(() -> new IllegalStateException("user not found: " + userId));
-        account.changeAvatar(avatarUrl);
-        store.updateAvatar(account.getId(), account.getAvatarUrl());
-        log.info("user avatar updated: id={}", userId);
-        return account;
-    }
+    public abstract UserAccount updateAvatar(String userId, String avatarUrl);
 }

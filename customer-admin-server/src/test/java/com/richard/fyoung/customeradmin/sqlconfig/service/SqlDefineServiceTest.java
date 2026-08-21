@@ -59,7 +59,7 @@ class SqlDefineServiceTest {
         paramMapper = mock(SqlDefineParamMapper.class);
         transformMapper = mock(SqlFieldTransformMapper.class);
         datasourceMapper = mock(SqlDatasourceMapper.class);
-        service = new SqlDefineService(defineMapper, paramMapper, transformMapper, datasourceMapper);
+        service = new SqlDefineServiceImpl(defineMapper, paramMapper, transformMapper, datasourceMapper);
     }
 
     @Test

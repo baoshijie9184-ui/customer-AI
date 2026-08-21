@@ -81,7 +81,7 @@ class GitAssistantServiceTest {
         siteMessageService = mock(SiteMessageService.class);
         model = mock(Model.class);
         // 审计服务用 mock（旁路能力，埋点行为由 AiCodingAuditServiceTest 单独覆盖）
-        service = new GitAssistantService(agentMapper, agentInstanceFactory, gitWorkspaceService,
+        service = new GitAssistantServiceImpl(agentMapper, agentInstanceFactory, gitWorkspaceService,
             mock(AiCodingAuditService.class), reviewTaskMapper, siteMessageService);
 
         when(agentInstanceFactory.resolveSessionWorkspace(anyString(), anyString())).thenReturn(sessionWorkspace);

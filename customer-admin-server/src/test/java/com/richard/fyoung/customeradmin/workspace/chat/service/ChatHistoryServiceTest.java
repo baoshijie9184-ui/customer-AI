@@ -57,7 +57,7 @@ class ChatHistoryServiceTest {
         historyCache = mock(ChatHistoryCache.class);
         sessionStateQueryMapper = mock(ChatSessionStateQueryMapper.class);
         attachmentStore = mock(AttachmentStore.class);
-        service = new ChatHistoryService(agentInstanceCache, agentStateStore, agentStateAccessor,
+        service = new ChatHistoryServiceImpl(agentInstanceCache, agentStateStore, agentStateAccessor,
             historyCache, sessionStateQueryMapper, attachmentStore);
 
         agent = mock(ReActAgent.class);

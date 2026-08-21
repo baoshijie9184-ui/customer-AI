@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import com.richard.fyoung.customerwork.capability.badcase.BadcaseServiceImpl;
 
 /**
  * 质检失败反馈记录器单测（数据飞轮）：不通过时落 FactLog、同时进 badcase 待筛队列，
@@ -34,9 +35,9 @@ class QualityFeedbackRecorderTest {
 
     /** 事实日志实例必须与被测对象共用一份——此前用落盘实现时靠同一个 tempDir 隐式共享。 */
     private QualityFeedbackRecorder newRecorder(FactLog factLog) {
-        BadcaseService badcaseService = new BadcaseService(badcaseStore, new InMemoryEvalCaseStore(),
+        BadcaseService badcaseService = new BadcaseServiceImpl(badcaseStore, new InMemoryEvalCaseStore(),
             null, null);
-        return new QualityFeedbackRecorder(new QualityInspectionService(), factLog,
+        return new QualityFeedbackRecorder(new QualityInspectionServiceImpl(), factLog,
             new TenantResolver(new CustomerWorkProperties()), new CustomerWorkProperties(),
             providerOf(badcaseService));
     }

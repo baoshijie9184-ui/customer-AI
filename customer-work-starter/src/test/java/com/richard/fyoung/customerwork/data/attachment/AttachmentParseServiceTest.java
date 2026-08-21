@@ -29,7 +29,7 @@ class AttachmentParseServiceTest {
             new ExcelMarkdownParser(),
             new TikaDocumentParser());
         // 文件存储只剩 MinIO 一种实现，单测用内存替身：本类验证的是解析编排，不是对象存储往返
-        return new AttachmentParseService(parsers, new InMemoryAttachmentStore(),
+        return new AttachmentParseServiceImpl(parsers, new InMemoryAttachmentStore(),
             new InMemoryTestFileStorage(), props);
     }
 

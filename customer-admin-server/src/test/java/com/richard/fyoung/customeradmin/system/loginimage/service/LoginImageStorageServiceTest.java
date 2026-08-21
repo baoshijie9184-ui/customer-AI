@@ -33,7 +33,7 @@ class LoginImageStorageServiceTest {
     @BeforeEach
     void setUp() {
         fileStorage = mock(AttachmentFileStorage.class);
-        storageService = new LoginImageStorageService(fileStorage);
+        storageService = new LoginImageStorageServiceImpl(fileStorage);
     }
 
     /** 校验不通过时不该触达存储层——写出去再报错会留下永不被引用的垃圾对象。 */

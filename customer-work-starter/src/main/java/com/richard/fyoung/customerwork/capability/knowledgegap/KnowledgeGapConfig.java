@@ -39,6 +39,6 @@ public class KnowledgeGapConfig {
     public KnowledgeGapService knowledgeGapService(KnowledgeGapStore store,
                                                    TenantResolver tenantResolver,
                                                    CustomerWorkProperties properties) {
-        return new KnowledgeGapService(store, tenantResolver, properties.getKnowledgeGap());
+        return new KnowledgeGapServiceImpl(store, tenantResolver, properties.getKnowledgeGap());
     }
 }

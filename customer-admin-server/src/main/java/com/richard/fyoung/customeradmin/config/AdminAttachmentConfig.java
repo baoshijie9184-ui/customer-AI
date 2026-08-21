@@ -24,6 +24,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.function.Supplier;
+import com.richard.fyoung.customerwork.data.attachment.AttachmentParseServiceImpl;
 
 /**
  * admin 侧附件域显式装配（仿 {@link AdminAgentRuntimeConfig} 手法）：本模块已 {@code spring.autoconfigure.exclude}
@@ -90,6 +91,6 @@ public class AdminAttachmentConfig {
             new ExcelMarkdownParser(),
             new TikaDocumentParser(),
             new VisionOcrParser(visionOcrService));
-        return new AttachmentParseService(parsers, attachmentStore, attachmentFileStorage, properties);
+        return new AttachmentParseServiceImpl(parsers, attachmentStore, attachmentFileStorage, properties);
     }
 }

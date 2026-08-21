@@ -20,6 +20,8 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import com.richard.fyoung.customerwork.capability.approval.PendingApprovalServiceImpl;
+import com.richard.fyoung.customerwork.capability.handoff.HandoffServiceImpl;
 
 /**
  * Agent 工厂单测：工具分组注册完整性、Meta-Tool 开关、租户解析。无需 Spring 上下文。
@@ -45,8 +47,8 @@ class CustomerServiceAgentFactoryTest {
                 new com.richard.fyoung.customerwork.tool.backend.MockProductBackend(),
                 new com.richard.fyoung.customerwork.tool.backend.MockMemberBackend(),
                 new com.richard.fyoung.customerwork.tool.backend.MockComplaintBackend(),
-                new com.richard.fyoung.customerwork.capability.approval.PendingApprovalService(),
-                new com.richard.fyoung.customerwork.capability.handoff.HandoffService(),
+                new PendingApprovalServiceImpl(),
+                new HandoffServiceImpl(),
                 null),
             new InMemoryAgentStateStore(),
             new com.richard.fyoung.customerwork.infra.config.PermissionConfig().permissionContextState(props),

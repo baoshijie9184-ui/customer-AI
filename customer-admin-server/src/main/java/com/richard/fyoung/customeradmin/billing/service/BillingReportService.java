@@ -6,7 +6,6 @@ import com.richard.fyoung.customeradmin.tenant.TenantSession;
 import com.richard.fyoung.customerwork.safety.tenant.CrossTenantOperations;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.util.List;
 
@@ -17,15 +16,7 @@ import java.util.List;
  * 算好落库了，查询时重算会让历史账单随调价而变动。</p>
  * @author owlzhangfq@gmail.com
  */
-@Slf4j
-@Service
-public class BillingReportService {
-
-    private final CwTenantUsageDailyMapper usageMapper;
-
-    public BillingReportService(CwTenantUsageDailyMapper usageMapper) {
-        this.usageMapper = usageMapper;
-    }
+public interface BillingReportService {
 
     /**
      * 单租户账单明细（按模型分组）。
@@ -33,22 +24,12 @@ public class BillingReportService {
      * <p>不传租户时取当前视角租户：运营方切到某租户就看那个租户的账，
      * 租户管理员则恒等于自己——一套接口两种身份都成立。</p>
      */
-    public List<UsageAggregate> tenantBill(String tenantId, LocalDate from, LocalDate to) {
-        String target = tenantId == null || tenantId.isBlank() ? TenantSession.effectiveTenant() : tenantId;
-        if (target == null) {
-            return List.of();
-        }
-        // 显式按 tenantId 查，跨租户豁免：运营方查别的租户时，当前上下文并不是目标租户
-        return CrossTenantOperations.execute(
-            () -> usageMapper.sumByTenantAndRange(target, from, to));
-    }
+    public abstract List<UsageAggregate> tenantBill(String tenantId, LocalDate from, LocalDate to);
 
     /**
      * 全租户账单总览（运营方专属）。
      *
      * <p>调用方必须先校验运营方身份——这是跨租户读，一旦被租户管理员调到就是全体客户的消费明细泄露。</p>
      */
-    public List<UsageAggregate> platformOverview(LocalDate from, LocalDate to) {
-        return CrossTenantOperations.execute(() -> usageMapper.sumGroupByTenant(from, to));
-    }
+    public abstract List<UsageAggregate> platformOverview(LocalDate from, LocalDate to);
 }

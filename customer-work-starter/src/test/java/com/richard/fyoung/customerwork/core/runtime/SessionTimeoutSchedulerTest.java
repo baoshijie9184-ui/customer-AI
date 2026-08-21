@@ -18,6 +18,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import com.richard.fyoung.customerwork.core.service.CustomerServiceServiceImpl;
 
 /**
  * 会话超时清理器单测：超时会话被清理 / 未超时会话保留 / 禁用时不清理。
@@ -42,7 +43,7 @@ class SessionTimeoutSchedulerTest {
             RuntimeContext.builder().userId("tenant").sessionId(inv.getArgument(0)).build());
         when(agent.call(anyString(), any(RuntimeContext.class)))
             .thenReturn(Mono.just(assistantMsg("ok")));
-        service = new CustomerServiceService(factory, sessionStateManager, properties);
+        service = new CustomerServiceServiceImpl(factory, sessionStateManager, properties);
     }
 
     private Msg assistantMsg(String text) {

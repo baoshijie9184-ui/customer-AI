@@ -55,7 +55,7 @@ class AgentMemoryServiceTest {
 
         memoryStore = mock(AgentMemoryStore.class);
         memorySyncService = mock(AgentMemorySyncService.class);
-        service = new AgentMemoryService(agentService, instanceFactory, memoryStore, memorySyncService);
+        service = new AgentMemoryServiceImpl(agentService, instanceFactory, memoryStore, memorySyncService);
     }
 
     @Test

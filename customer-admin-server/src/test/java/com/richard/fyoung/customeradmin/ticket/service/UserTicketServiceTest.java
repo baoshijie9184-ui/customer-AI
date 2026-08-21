@@ -36,7 +36,7 @@ class UserTicketServiceTest {
         properties.setAgentSecret(SECRET);
         properties.setCredentialExpireHours(EXPIRE_HOURS);
         properties.setWsUrl("ws://localhost:8080/ws/agent");
-        service = new UserTicketService(client, properties);
+        service = new UserTicketServiceImpl(client, properties);
     }
 
     @Test

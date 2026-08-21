@@ -17,10 +17,10 @@
 
     <properties>
         <!-- Spring Cloud / Spring Cloud Alibaba BOM 版本仅在本模块声明，
-             与 Spring Boot 3.2.x 对齐（2023.0.x 线）。这两个 BOM 绝不进根 pom 的
+             与 Spring Boot 4.0.x 对齐（2025.1.x 线）。这两个 BOM 绝不进根 pom 的
              dependencyManagement——避免全局波及其它模块的依赖版本仲裁。 -->
-        <spring-cloud.version>2023.0.3</spring-cloud.version>
-        <spring-cloud-alibaba.version>2023.0.3.2</spring-cloud-alibaba.version>
+        <spring-cloud.version>2025.1.2</spring-cloud.version>
+        <spring-cloud-alibaba.version>2025.1.0.0</spring-cloud-alibaba.version>
     </properties>
 
     <dependencyManagement>
@@ -48,7 +48,7 @@
         <!-- 响应式网关（WebFlux）：WS 升级 / SSE 流式默认友好 -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-gateway</artifactId>
+            <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
         </dependency>
         <!-- Nacos 服务发现（消费端，只发现不注册） -->
         <dependency>
@@ -70,6 +70,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.vaadin.external.google</groupId>
+                    <artifactId>android-json</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

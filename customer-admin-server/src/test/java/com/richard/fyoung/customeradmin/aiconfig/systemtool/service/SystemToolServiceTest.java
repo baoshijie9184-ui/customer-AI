@@ -56,7 +56,7 @@ class SystemToolServiceTest {
         agentSystemToolMapper = mock(AiAgentSystemToolMapper.class);
         agentMapper = mock(AiAgentMapper.class);
         agentInstanceCache = mock(AgentInstanceCache.class);
-        service = new SystemToolService(systemToolMapper, agentSystemToolMapper, agentMapper, agentInstanceCache);
+        service = new SystemToolServiceImpl(systemToolMapper, agentSystemToolMapper, agentMapper, agentInstanceCache);
     }
 
     @Test

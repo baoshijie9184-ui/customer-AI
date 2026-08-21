@@ -58,7 +58,7 @@ class DevToolCertServiceTest {
         -----END EC PRIVATE KEY-----
         """;
 
-    private final DevToolCertService service = new DevToolCertService();
+    private final DevToolCertService service = new DevToolCertServiceImpl();
 
     @Test
     void parse_shouldMapAllCertificateFields_toVO() {

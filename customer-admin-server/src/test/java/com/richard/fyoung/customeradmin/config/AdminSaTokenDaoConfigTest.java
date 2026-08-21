@@ -1,7 +1,7 @@
 package com.richard.fyoung.customeradmin.config;
 
 import cn.dev33.satoken.dao.SaTokenDao;
-import cn.dev33.satoken.dao.SaTokenDaoRedisJackson;
+import cn.dev33.satoken.dao.SaTokenDaoForRedisTemplate;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -9,6 +9,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * {@link AdminSaTokenDaoConfig} 单测：手动装配必须替插件把 {@code init} 调掉。
@@ -25,11 +26,10 @@ class AdminSaTokenDaoConfigTest {
 
         SaTokenDao dao = new AdminSaTokenDaoConfig().saTokenDao(connectionFactory);
 
-        SaTokenDaoRedisJackson redisDao = assertInstanceOf(SaTokenDaoRedisJackson.class, dao);
-        // init 成功的可观测标志：两个 RedisTemplate 建好且绑到传入的连接工厂上
+        SaTokenDaoForRedisTemplate redisDao = assertInstanceOf(SaTokenDaoForRedisTemplate.class, dao);
+        // init 成功的可观测标志：RedisTemplate 建好且绑到传入的连接工厂上
         assertNotNull(redisDao.stringRedisTemplate);
-        assertNotNull(redisDao.objectRedisTemplate);
+        assertTrue(redisDao.isInit);
         assertSame(connectionFactory, redisDao.stringRedisTemplate.getConnectionFactory());
-        assertSame(connectionFactory, redisDao.objectRedisTemplate.getConnectionFactory());
     }
 }

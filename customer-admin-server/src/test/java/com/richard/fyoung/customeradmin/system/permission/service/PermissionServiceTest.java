@@ -62,7 +62,7 @@ class PermissionServiceTest {
                 return action.get();
             }
         };
-        service = new PermissionService(mapper, changeLogService, menuVersionHolder, lockExecutor, null);
+        service = new PermissionServiceImpl(mapper, changeLogService, menuVersionHolder, lockExecutor, null);
         // self 字段生产环境靠 @Lazy 自注入拿到 Spring AOP 代理（绕开 @Transactional 自调用失效问题）；
         // 单测不经过容器、没有真实代理，反射回填成 service 自身即可等价验证业务逻辑。
         ReflectionTestUtils.setField(service, "self", service);
@@ -189,7 +189,7 @@ class PermissionServiceTest {
             }
         };
         PermissionService contended =
-            new PermissionService(mapper, changeLogService, menuVersionHolder, contendedLockExecutor, null);
+            new PermissionServiceImpl(mapper, changeLogService, menuVersionHolder, contendedLockExecutor, null);
         ReflectionTestUtils.setField(contended, "self", contended);
 
         BizException ex = assertThrows(BizException.class, () -> contended.reorder(

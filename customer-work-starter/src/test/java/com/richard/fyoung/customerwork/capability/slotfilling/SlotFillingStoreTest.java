@@ -71,7 +71,7 @@ class SlotFillingStoreTest {
 
     @Test
     void slotFillingService_withStore_shouldSurviveStoreReplacement() {
-        SlotFillingService svc = new SlotFillingService(store);
+        SlotFillingService svc = new SlotFillingServiceImpl(store);
         SlotFillingForm form = SlotFillingForm.refundForm();
 
         // 轮1：开始收集

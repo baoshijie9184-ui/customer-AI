@@ -52,7 +52,7 @@ public class BadcaseConfig {
                                          EvalCaseStore evalCaseStore,
                                          ObjectProvider<ChatMessageStore> chatStoreProvider,
                                          ObjectProvider<KnowledgeMapper> knowledgeMapperProvider) {
-        return new BadcaseService(badcaseStore, evalCaseStore,
+        return new BadcaseServiceImpl(badcaseStore, evalCaseStore,
             chatStoreProvider.getIfAvailable(), knowledgeMapperProvider.getIfAvailable());
     }
 }

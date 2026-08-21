@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import com.richard.fyoung.customerwork.capability.badcase.BadcaseServiceImpl;
 
 /**
  * 用户反馈服务单测：UP 不落 FactLog、DOWN 落 FactLog 供飞轮复盘、重复提交覆盖、按会话查询，
@@ -36,13 +37,13 @@ class FeedbackServiceTest {
     private FeedbackService newService(FactLog factLog) {
         InMemoryFeedbackStore store = new InMemoryFeedbackStore();
         TenantResolver resolver = new TenantResolver(new CustomerWorkProperties());
-        return new FeedbackService(store, factLog, resolver, new CustomerWorkProperties(),
+        return new FeedbackServiceImpl(store, factLog, resolver, new CustomerWorkProperties(),
             providerOf(newBadcaseService()));
     }
 
     /** 聊天留痕与知识库都不可用：此时 badcase 仍应被登记下来，只是缺少对话上下文。 */
     private BadcaseService newBadcaseService() {
-        return new BadcaseService(badcaseStore, new InMemoryEvalCaseStore(), null, null);
+        return new BadcaseServiceImpl(badcaseStore, new InMemoryEvalCaseStore(), null, null);
     }
 
     @SuppressWarnings("unchecked")

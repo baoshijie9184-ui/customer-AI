@@ -17,10 +17,14 @@ import java.util.Map;
  */
 @Data
 public class HarnessProperties {
-    /** 是否启用 HarnessAgent 包装（叠加 Plan Mode / Compaction / Subagent / Workspace）。默认关闭。 */
+    /** 是否启用 HarnessAgent 包装（叠加 Plan Mode / Compaction / Subagent / Workspace）。 */
     private boolean enabled = false;
-    /** 工作区 / 沙箱根目录（文件工具、代码执行、子智能体的隔离工作区）。 */
+    /** Agent 定义与演进的工作区根目录；运行数据按 RuntimeContext 命名空间隔离。 */
     private String workspaceDir = RuntimeWorkDir.of("workspace");
+    /** WorkspaceContextMiddleware 注入 MEMORY.md 的最大 token 预算（2.0.2 默认 8000）。 */
+    private int maxContextTokens = 8000;
+    /** 把每轮 Agent 事件写入 workspace 会话日志，便于审计与恢复。 */
+    private boolean agentTracingLogEnabled = true;
     /** 分层记忆：启用 MEMORY.md 持久画像 + 会话沉淀 + 自动 consolidation（MemoryConfig）。 */
     private boolean memoryEnabled = false;
     /**

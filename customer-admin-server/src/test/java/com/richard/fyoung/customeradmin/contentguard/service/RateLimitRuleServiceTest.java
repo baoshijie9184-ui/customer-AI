@@ -44,7 +44,7 @@ class RateLimitRuleServiceTest {
             mock(SensitiveWordExtMapper.class), ruleMapper, mock(SensitiveWordHitLogMapper.class), null);
         ContentGuardGatewayProvider provider = mock(ContentGuardGatewayProvider.class);
         when(provider.get()).thenReturn(gateway);
-        service = new RateLimitRuleService(provider);
+        service = new RateLimitRuleServiceImpl(provider);
     }
 
     private RateLimitRuleEntity row(long id, String name, String path, int priority, boolean enabled) {

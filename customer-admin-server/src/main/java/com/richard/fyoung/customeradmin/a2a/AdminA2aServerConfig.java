@@ -4,8 +4,7 @@ import com.richard.fyoung.customeradmin.aiconfig.agent.entity.AiAgent;
 import com.richard.fyoung.customeradmin.aiconfig.agent.mapper.AiAgentMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.richard.fyoung.customeradmin.workspace.runtime.AgentInstanceCache;
-import cn.dev33.satoken.fun.strategy.SaCheckRequestPathFunction;
-import cn.dev33.satoken.strategy.SaStrategy;
+import cn.dev33.satoken.strategy.hooks.SaFirewallCheckHookForWhitePath;
 import io.a2a.spec.TransportProtocol;
 import io.agentscope.core.a2a.server.AgentScopeA2aServer;
 import io.agentscope.core.a2a.server.card.ConfigurableAgentCard;
@@ -64,15 +63,9 @@ public class AdminA2aServerConfig {
      */
     @PostConstruct
     void allowAgentCardPathThroughFirewall() {
-        SaCheckRequestPathFunction original = SaStrategy.instance.checkRequestPath;
-        SaStrategy.instance.checkRequestPath = (path, extArg1, extArg2) -> {
-            if (AGENT_CARD_PATH.equals(path)) {
-                return;
-            }
-            // 其余路径一律交回原策略，不复制它的规则——复制一份等于将来 Sa-Token 补了新的
-            // 攻击特征我们这里还是老的
-            original.run(path, extArg1, extArg2);
-        };
+        if (!SaFirewallCheckHookForWhitePath.instance.whitePaths.contains(AGENT_CARD_PATH)) {
+            SaFirewallCheckHookForWhitePath.instance.whitePaths.add(AGENT_CARD_PATH);
+        }
         log.info("[a2a] agent card path allowed through sa-token firewall: {}", AGENT_CARD_PATH);
     }
 

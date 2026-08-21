@@ -49,6 +49,6 @@ public class AgentCallLogConfig {
     @Bean
     @ConditionalOnMissingBean(AgentCallLogService.class)
     public AgentCallLogService agentCallLogService(AgentCallLogStore agentCallLogStore) {
-        return new AgentCallLogService(agentCallLogStore);
+        return new AgentCallLogServiceImpl(agentCallLogStore);
     }
 }

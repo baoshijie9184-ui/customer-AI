@@ -21,6 +21,8 @@ import java.nio.file.StandardOpenOption;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import com.richard.fyoung.customerwork.capability.approval.PendingApprovalServiceImpl;
+import com.richard.fyoung.customerwork.capability.handoff.HandoffServiceImpl;
 
 /**
  * 业务数据分析聚合服务单测：审批放行率/平均决策时长、人机切换平均接单结案时长、
@@ -47,8 +49,8 @@ class BusinessAnalyticsServiceTest {
         ApprovalRequest pendingOutsideWindow = new ApprovalRequest("AP-4", ApprovalType.REFUND, "s4", "O4", "100", "r", 100_000L);
         store.save(pendingOutsideWindow);
 
-        BusinessAnalyticsService svc = new BusinessAnalyticsService(
-            new PendingApprovalService(store), new HandoffService(), new InMemoryTestFactLog());
+        BusinessAnalyticsService svc = new BusinessAnalyticsServiceImpl(
+            new PendingApprovalServiceImpl(store), new HandoffServiceImpl(), new InMemoryTestFactLog());
 
         BusinessAnalyticsReport report = svc.report(0L, 10_000L, null);
         ApprovalStats stats = report.approval();
@@ -67,8 +69,8 @@ class BusinessAnalyticsServiceTest {
         ApprovalStore store = new InMemoryApprovalStore();
         store.save(new ApprovalRequest("AP-1", ApprovalType.REFUND, "s1", "O1", "100", "r", 1000L));
 
-        BusinessAnalyticsService svc = new BusinessAnalyticsService(
-            new PendingApprovalService(store), new HandoffService(), new InMemoryTestFactLog());
+        BusinessAnalyticsService svc = new BusinessAnalyticsServiceImpl(
+            new PendingApprovalServiceImpl(store), new HandoffServiceImpl(), new InMemoryTestFactLog());
 
         ApprovalStats stats = svc.report(0L, 10_000L, null).approval();
         assertEquals(0.0, stats.approvalRate(), 1e-9, "无已决策单时放行率应为 0.0（非 NaN）");
@@ -94,8 +96,8 @@ class BusinessAnalyticsServiceTest {
         HandoffTicket pendingOutsideWindow = new HandoffTicket("HO-4", "s4", "r", 100_000L);
         store.save(pendingOutsideWindow);
 
-        BusinessAnalyticsService svc = new BusinessAnalyticsService(
-            new PendingApprovalService(), new HandoffService(store), new InMemoryTestFactLog());
+        BusinessAnalyticsService svc = new BusinessAnalyticsServiceImpl(
+            new PendingApprovalServiceImpl(), new HandoffServiceImpl(store), new InMemoryTestFactLog());
 
         HandoffStats stats = svc.report(0L, 10_000L, null).handoff();
 
@@ -111,8 +113,8 @@ class BusinessAnalyticsServiceTest {
 
     @Test
     void qualityStats_withoutTenantId_shouldReturnEmptyPlaceholder(@TempDir Path tempDir) {
-        BusinessAnalyticsService svc = new BusinessAnalyticsService(
-            new PendingApprovalService(), new HandoffService(), new InMemoryTestFactLog());
+        BusinessAnalyticsService svc = new BusinessAnalyticsServiceImpl(
+            new PendingApprovalServiceImpl(), new HandoffServiceImpl(), new InMemoryTestFactLog());
 
         QualityStats stats = svc.report(0L, 10_000L, null).quality();
         assertNull(stats.tenantId());
@@ -130,8 +132,8 @@ class BusinessAnalyticsServiceTest {
         factLog.seed(100000L, "tenantA", "{\"type\":\"quality-failure\",\"score\":40}");
         factLog.seed(1500L, "tenantA", "用户偏好深色主题（长期记忆纯文本事实，非 JSON）");
 
-        BusinessAnalyticsService svc = new BusinessAnalyticsService(
-            new PendingApprovalService(), new HandoffService(), factLog);
+        BusinessAnalyticsService svc = new BusinessAnalyticsServiceImpl(
+            new PendingApprovalServiceImpl(), new HandoffServiceImpl(), factLog);
 
         QualityStats stats = svc.report(0L, 10_000L, "tenantA").quality();
         assertEquals("tenantA", stats.tenantId());

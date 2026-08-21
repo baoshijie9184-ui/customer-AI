@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import com.richard.fyoung.customerwork.capability.approval.PendingApprovalServiceImpl;
+import com.richard.fyoung.customerwork.capability.handoff.HandoffServiceImpl;
 
 /**
  * customer-channel 的 Agent 集成配置：复用 customer-work 的客服 Agent 能力，把 Agent / Model / Toolkit /
@@ -105,8 +107,8 @@ public class CustomerWebAgentConfig {
             new com.richard.fyoung.customerwork.tool.backend.MockProductBackend(),
             new com.richard.fyoung.customerwork.tool.backend.MockMemberBackend(),
             new com.richard.fyoung.customerwork.tool.backend.MockComplaintBackend(),
-            new com.richard.fyoung.customerwork.capability.approval.PendingApprovalService(),
-            new com.richard.fyoung.customerwork.capability.handoff.HandoffService(),
+            new PendingApprovalServiceImpl(),
+            new HandoffServiceImpl(),
             null)
             .registerBusinessTools(toolkit);
         return toolkit;

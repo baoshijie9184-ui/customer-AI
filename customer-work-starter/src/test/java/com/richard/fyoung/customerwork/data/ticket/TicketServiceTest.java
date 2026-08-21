@@ -35,7 +35,7 @@ class TicketServiceTest {
     }
 
     private TicketService service(TicketEventListener... listeners) {
-        return new TicketService(new InMemoryTicketStore(), TicketTestSupport.providerOf(listeners));
+        return new TicketServiceImpl(new InMemoryTicketStore(), TicketTestSupport.providerOf(listeners));
     }
 
     @Test
@@ -88,7 +88,7 @@ class TicketServiceTest {
     @Test
     void claimAtomically_secondCallShouldReturnFalse() {
         InMemoryTicketStore store = new InMemoryTicketStore();
-        TicketService svc = new TicketService(store, TicketTestSupport.providerOf());
+        TicketService svc = new TicketServiceImpl(store, TicketTestSupport.providerOf());
         Ticket t = svc.createForSession("s1", "u1", "标题", TicketCategory.ORDER);
         svc.requestHandoff("s1", "要人工", TicketActorType.USER, "u1");
 

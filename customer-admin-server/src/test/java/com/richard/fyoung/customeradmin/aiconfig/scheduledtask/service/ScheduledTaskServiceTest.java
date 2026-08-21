@@ -57,7 +57,7 @@ class ScheduledTaskServiceTest {
         AdminScheduledTaskProperties properties = new AdminScheduledTaskProperties();
         AdminSchedulerProperties schedulerProperties = new AdminSchedulerProperties();
         ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
-        service = new ScheduledTaskService(taskMapper, runMapper, agentMapper, agentInstanceFactory,
+        service = new ScheduledTaskServiceImpl(taskMapper, runMapper, agentMapper, agentInstanceFactory,
             properties, schedulerProperties, eventPublisher);
 
         runtimeAgent = mock(ReActAgent.class);

@@ -20,7 +20,7 @@ class UserOrderServiceTest {
     @BeforeEach
     void setUp() {
         client = mock(CustomerWorkTicketClient.class);
-        service = new UserOrderService(client);
+        service = new UserOrderServiceImpl(client);
     }
 
     @Test

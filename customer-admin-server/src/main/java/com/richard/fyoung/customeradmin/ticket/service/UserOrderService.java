@@ -11,28 +11,13 @@ import org.springframework.stereotype.Service;
  * （订单数据在 8080 侧，本模块不建业务表）。
  * @author owlzhangfq@gmail.com
  */
-@Service
-public class UserOrderService {
+public interface UserOrderService {
 
-    private final CustomerWorkTicketClient client;
+    public abstract OrderPageResult page(OrderPageQuery query);
 
-    public UserOrderService(CustomerWorkTicketClient client) {
-        this.client = client;
-    }
+    public abstract OrderDetailVO detail(String orderId);
 
-    public OrderPageResult page(OrderPageQuery query) {
-        return client.pageOrders(query);
-    }
+    public abstract void modifyAddress(String orderId, String newAddress);
 
-    public OrderDetailVO detail(String orderId) {
-        return client.orderDetail(orderId);
-    }
-
-    public void modifyAddress(String orderId, String newAddress) {
-        client.modifyOrderAddress(orderId, newAddress);
-    }
-
-    public void cancel(String orderId, String reason) {
-        client.cancelOrder(orderId, reason);
-    }
+    public abstract void cancel(String orderId, String reason);
 }

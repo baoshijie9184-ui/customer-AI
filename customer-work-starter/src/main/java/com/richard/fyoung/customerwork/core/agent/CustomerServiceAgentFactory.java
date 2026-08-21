@@ -15,14 +15,13 @@ import io.agentscope.core.ReActAgent;
 import io.agentscope.core.agent.RuntimeContext;
 import com.richard.fyoung.customerwork.core.middleware.HumanApprovalMiddleware;
 import com.richard.fyoung.customerwork.core.middleware.ObservabilityMiddleware;
-import io.agentscope.core.hook.recorder.JsonlTraceExporter;
 import io.agentscope.core.middleware.MiddlewareBase;
 import io.agentscope.core.memory.LongTermMemoryMode;
 import io.agentscope.core.model.Model;
 import io.agentscope.core.permission.PermissionContextState;
 import io.agentscope.core.rag.RAGMode;
 import io.agentscope.core.skill.AgentSkill;
-import io.agentscope.core.skill.SkillBox;
+import io.agentscope.core.skill.repository.AgentSkillRepository;
 import io.agentscope.core.skill.repository.ClasspathSkillRepository;
 import io.agentscope.core.skill.repository.FileSystemSkillRepository;
 import io.agentscope.core.state.AgentStateStore;
@@ -30,7 +29,6 @@ import io.agentscope.core.tool.Toolkit;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
@@ -58,7 +56,7 @@ import com.richard.fyoung.customerwork.infra.config.properties.SkillProperties;
  * @author owlzhangfq@gmail.com
  */
 @Component
-public class CustomerServiceAgentFactory implements DisposableBean {
+public class CustomerServiceAgentFactory {
 
     private static final Logger log = LoggerFactory.getLogger(CustomerServiceAgentFactory.class);
 
@@ -98,9 +96,6 @@ public class CustomerServiceAgentFactory implements DisposableBean {
     private final ObjectProvider<MiddlewareBase> pluggableMiddlewares;
     /** MySQL 技能物化器：{@code skill.repository=mysql} 时才取用，持久化环境未激活时取不到。 */
     private final ObjectProvider<MysqlSkillMaterializer> skillMaterializerProvider;
-
-    /** 共享的 trace 导出器（AutoCloseable，进程级单例）。 */
-    private volatile JsonlTraceExporter traceExporter;
 
     public CustomerServiceAgentFactory(Model model,
                                        CustomerWorkProperties properties,
@@ -239,13 +234,8 @@ public class CustomerServiceAgentFactory implements DisposableBean {
             pluggableMiddlewares.orderedStream().forEach(builder::middleware);
         }
 
-        // 可观测：JSONL trace 导出（框架 Hook，数据飞轮采集）
-        if (properties.getObservability().isTraceEnabled()) {
-            builder.hook(traceExporter());
-        }
-
-        // 多租户长期记忆（memory / 百炼，由 Provider 选择）
-        if (properties.getMemory().isLongTermEnabled()) {
+        // Harness/Workspace 已承接 2.0.2 的长期记忆；仅旧 ReAct 回退链路保留兼容实现。
+        if (!properties.getHarness().isEnabled() && properties.getMemory().isLongTermEnabled()) {
             String tenantId = resolveTenant(sessionId);
             builder.longTermMemory(longTermMemoryProvider.create(tenantId))
                 .longTermMemoryMode(LongTermMemoryMode.BOTH);
@@ -256,12 +246,12 @@ public class CustomerServiceAgentFactory implements DisposableBean {
             builder.knowledge(knowledgeProvider.get()).ragMode(RAGMode.AGENTIC);
         }
 
-        // Skill 技能库
+        // 2.0.2 使用 AgentSkillRepository，替代已废弃的 SkillBox。
         if (properties.getSkill().isEnabled()) {
-            SkillBox skillBox = buildSkillBox(toolkit);
-            if (skillBox != null) {
-                builder.skillBox(skillBox);
-                // 代码执行技能：2.0 由 Builder 内置开关承接（替代 1.x 的 skillBox.codeExecution() 流式构建）
+            AgentSkillRepository skillRepository = buildSkillRepository();
+            if (skillRepository != null) {
+                builder.skillRepository(skillRepository)
+                    .dynamicSkillsEnabled(properties.getSkill().isRuntimeLoadToolEnabled());
                 SkillProperties skillCfg = properties.getSkill();
                 if (skillCfg.isCodeExecutionEnabled()) {
                     builder.skillCodeExecutionEnabled(true)
@@ -304,72 +294,40 @@ public class CustomerServiceAgentFactory implements DisposableBean {
         return skills;
     }
 
-    /** 加载技能并注册进 SkillBox（支持 mysql 权威 / classpath 只读 / filesystem 可写自进化）。 */
-    private SkillBox buildSkillBox(Toolkit toolkit) {
+    /** 加载 2.0.2 技能仓库（支持 mysql 权威 / classpath 只读 / filesystem 可写自进化）。 */
+    private AgentSkillRepository buildSkillRepository() {
         SkillProperties cfg = properties.getSkill();
         try {
-            List<AgentSkill> skills;
+            AgentSkillRepository skillRepository;
             String repository = cfg.getRepository();
             if ("mysql".equalsIgnoreCase(repository)) {
-                skills = loadSkillsFromMysql(cfg);
+                loadSkillsFromMysql(cfg);
+                skillRepository = new FileSystemSkillRepository(Path.of(cfg.getDirectory()), false);
             } else if ("filesystem".equalsIgnoreCase(repository)) {
                 java.nio.file.Path dir = Path.of(cfg.getDirectory());
                 java.nio.file.Files.createDirectories(dir);
-                skills = new FileSystemSkillRepository(dir, cfg.isWritable()).getAllSkills();
+                skillRepository = new FileSystemSkillRepository(dir, cfg.isWritable());
                 log.info("[Skill] filesystem 仓库({}, writable={})", dir.toAbsolutePath(), cfg.isWritable());
             } else {
-                skills = new ClasspathSkillRepository(cfg.getLocation()).getAllSkills();
+                skillRepository = new ClasspathSkillRepository(cfg.getLocation());
             }
-            // 快照注册前工具名，注册 skill 后取增量即为 skill 贡献的工具，登记为 SKILL 类别
-            // （用 toolkit 实际工具名做键，与 onActing 的 ToolUseBlock.getName() 一致）
-            java.util.Set<String> beforeSkill = new java.util.HashSet<>(toolkit.getToolNames());
-            SkillBox skillBox = new SkillBox(toolkit);
-            for (AgentSkill skill : skills) {
-                skillBox.registerSkill(skill);
-            }
-            java.util.Set<String> skillTools = new java.util.HashSet<>(toolkit.getToolNames());
-            skillTools.removeAll(beforeSkill);
-            // 兜底：skill 可能以懒激活形式尚未落 toolkit，同时登记 skillId / skillName，覆盖 onActing 可能出现的两种名
-            skillTools.addAll(skillBox.getAllSkillIds());
+            List<AgentSkill> skills = skillRepository.getAllSkills();
+            java.util.Set<String> skillTools = new java.util.HashSet<>(skillRepository.getAllSkillNames());
             for (AgentSkill skill : skills) {
                 if (skill.getName() != null) {
                     skillTools.add(skill.getName());
                 }
             }
             toolKindRegistry.registerSkillTools(skillTools);
-            // 运行时加载技能工具：允许 Agent 按需自行加载技能（技能自进化）
             if (cfg.isRuntimeLoadToolEnabled()) {
-                skillBox.registerSkillLoadTool();
-                log.info("[Skill] runtime skill-load tool registered");
+                log.info("[Skill] dynamic skill loading enabled");
             }
-            // 代码执行 workDir：2.0 工作目录在 SkillBox 上设置，开关在 Builder 上（见 createAgent）
-            if (cfg.isCodeExecutionEnabled()) {
-                skillBox.setWorkDir(Path.of(cfg.getCodeExecutionWorkDir()));
-            }
-            log.info("[Skill] loaded {} skills: {}", skillBox.getAllSkillIds().size(),
-                skillBox.getAllSkillIds());
-            return skillBox;
+            log.info("[Skill] loaded {} skills: {}", skillTools.size(), skillTools);
+            return skillRepository;
         } catch (Exception e) {
             log.error("[Skill] skill loading failed (skip skill wiring), code={}", "SKILL_LOAD_ERROR", e);
             return null;
         }
-    }
-
-    private JsonlTraceExporter traceExporter() {
-        if (traceExporter == null) {
-            synchronized (this) {
-                if (traceExporter == null) {
-                    traceExporter = JsonlTraceExporter
-                        .builder(Path.of(properties.getObservability().getTraceFile()))
-                        .append(true)
-                        .flushEveryLine(true)
-                        .build();
-                    log.info("[OTEL] JSONL trace 导出已启用: {}",
-                        properties.getObservability().getTraceFile());
-                }
-            }
-        }
-        return traceExporter;
     }
 
     /**
@@ -380,16 +338,4 @@ public class CustomerServiceAgentFactory implements DisposableBean {
         return tenantResolver.resolve(sessionId);
     }
 
-    /** 容器关闭时优雅释放 trace 导出器（AutoCloseable）。 */
-    @Override
-    public void destroy() {
-        if (traceExporter != null) {
-            try {
-                traceExporter.close();
-                log.info("[OTEL] trace 导出器已关闭");
-            } catch (Exception e) {
-                log.warn("[OTEL] 关闭 trace 导出器失败: {}", e.getMessage());
-            }
-        }
-    }
 }

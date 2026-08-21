@@ -12,7 +12,6 @@ import com.richard.fyoung.customerwork.tool.backend.mapper.KnowledgeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,34 +36,7 @@ import java.util.UUID;
  * 那里没有 Spring 容器可供惰性查找。可空字段让两种装配路径共用同一个构造器。</p>
  * @author owlzhangfq@gmail.com
  */
-public class BadcaseService {
-
-    private static final Logger log = LoggerFactory.getLogger(BadcaseService.class);
-
-    /** 回查对话上下文时往前看的消息条数：够覆盖一问一答及少量穿插的系统消息。 */
-    private static final int CONTEXT_LOOKBACK = 20;
-
-    /** 回流生成的知识条目的来源标注，便于日后审计"这条知识哪来的"。 */
-    private static final String KNOWLEDGE_SOURCE_PREFIX = "badcase:";
-
-    private final BadcaseStore store;
-    private final EvalCaseStore evalCaseStore;
-
-    /** 可空：聊天留痕未开启时无法回查对话上下文，badcase 仍照常登记。 */
-    private final ChatMessageStore chatStore;
-
-    /** 可空：知识库非 jdbc 后端时无法回流知识条目，转评测用例这条路仍可走。 */
-    private final KnowledgeMapper knowledgeMapper;
-
-    public BadcaseService(BadcaseStore store,
-                          EvalCaseStore evalCaseStore,
-                          ChatMessageStore chatStore,
-                          KnowledgeMapper knowledgeMapper) {
-        this.store = store;
-        this.evalCaseStore = evalCaseStore;
-        this.chatStore = chatStore;
-        this.knowledgeMapper = knowledgeMapper;
-    }
+public interface BadcaseService {
 
     /**
      * 记录一条 badcase（旁路，失败不阻断主链路）。
@@ -74,36 +46,22 @@ public class BadcaseService {
      *
      * @return 记录成功返回 badcase，失败返回空
      */
-    public Optional<Badcase> record(BadcaseSource source, String sessionId, String messageId, String detail) {
-        try {
-            DialogContext context = resolveContext(sessionId, messageId);
-            Badcase badcase = new Badcase(UUID.randomUUID().toString(), source, sessionId, messageId,
-                context.userInput(), context.agentReply(), detail, System.currentTimeMillis());
-            store.save(badcase);
-            log.info("badcase recorded: id={}, source={}, sessionId={}",
-                badcase.getId(), source, sessionId);
-            return Optional.of(badcase);
-        } catch (Exception e) {
-            log.error("record badcase failed, errorCode={}, sessionId={}, source={}",
-                "BADCASE-RECORD-FAIL", sessionId, source, e);
-            return Optional.empty();
-        }
-    }
+    public abstract Optional<Badcase> record(BadcaseSource source, String sessionId, String messageId, String detail);
 
-    /** 按条件查询待筛选队列。 */
-    public List<Badcase> query(BadcaseQuery query) {
-        return store.query(query);
-    }
+    /**
+     * 按条件查询待筛选队列。
+     */
+    public abstract List<Badcase> query(BadcaseQuery query);
 
-    /** 按条件计数（分页总数与"待筛 N 条"角标共用）。 */
-    public long count(BadcaseStatus status, BadcaseSource source) {
-        return store.count(status, source);
-    }
+    /**
+     * 按条件计数（分页总数与"待筛 N 条"角标共用）。
+     */
+    public abstract long count(BadcaseStatus status, BadcaseSource source);
 
-    /** 按 ID 查一条。 */
-    public Optional<Badcase> find(String badcaseId) {
-        return store.find(badcaseId);
-    }
+    /**
+     * 按 ID 查一条。
+     */
+    public abstract Optional<Badcase> find(String badcaseId);
 
     /**
      * 采纳为知识库条目：把答错的那块知识补上。
@@ -113,26 +71,7 @@ public class BadcaseService {
      *
      * @throws IllegalStateException 知识库未走 jdbc、badcase 不存在或已采纳过时
      */
-    public Badcase adoptAsKnowledge(String badcaseId, String title, String content,
-                                    String keyword, String operator) {
-        Badcase badcase = require(badcaseId);
-        if (knowledgeMapper == null) {
-            throw new IllegalStateException(
-                "cannot adopt as knowledge: knowledge backend is not jdbc-backed");
-        }
-        KnowledgeDO entry = new KnowledgeDO();
-        entry.setTitle(title);
-        entry.setContent(content);
-        entry.setKeyword(keyword);
-        entry.setSource(KNOWLEDGE_SOURCE_PREFIX + badcaseId);
-        knowledgeMapper.insert(entry);
-
-        badcase.adoptAsKnowledge(entry.getId(), operator, System.currentTimeMillis());
-        store.save(badcase);
-        log.info("badcase adopted as knowledge: id={}, knowledgeId={}, operator={}",
-            badcaseId, entry.getId(), operator);
-        return badcase;
-    }
+    public abstract Badcase adoptAsKnowledge(String badcaseId, String title, String content, String keyword, String operator);
 
     /**
      * 采纳为评测用例：把这次翻车固化成回归防护。
@@ -142,86 +81,10 @@ public class BadcaseService {
      * @param expected INTENT 传期望意图（空表示期望快车道不命中）；QUALITY 传期望要点
      * @throws IllegalStateException badcase 不存在、已采纳过，或用例编号已被占用时
      */
-    public Badcase adoptAsEvalCase(String badcaseId, String caseId, EvalType evalType,
-                                   String expected, String category, String operator) {
-        Badcase badcase = require(badcaseId);
-        if (!StringUtils.hasText(badcase.getUserInput())) {
-            throw new IllegalStateException(
-                "cannot adopt as eval case: user input unavailable for badcase " + badcaseId);
-        }
-        // 编号冲突会静默覆盖掉一条已有用例（upsert 语义），必须提前拦
-        if (evalCaseStore.find(evalType, caseId).isPresent()) {
-            throw new IllegalStateException("eval case id already exists: " + caseId);
-        }
-        evalCaseStore.save(new PersistedEvalCase(caseId, evalType, badcase.getUserInput(),
-            expected, category, EvalCaseSource.BADCASE, true, badcaseId, System.currentTimeMillis()));
-
-        badcase.adoptAsEvalCase(caseId, operator, System.currentTimeMillis());
-        store.save(badcase);
-        log.info("badcase adopted as eval case: id={}, caseId={}, evalType={}, operator={}",
-            badcaseId, caseId, evalType, operator);
-        return badcase;
-    }
-
-    /** 忽略：噪声反馈或质检误报。 */
-    public Badcase ignore(String badcaseId, String reason, String operator) {
-        Badcase badcase = require(badcaseId);
-        badcase.ignore(operator, reason, System.currentTimeMillis());
-        store.save(badcase);
-        log.info("badcase ignored: id={}, operator={}", badcaseId, operator);
-        return badcase;
-    }
-
-    private Badcase require(String badcaseId) {
-        return store.find(badcaseId)
-            .orElseThrow(() -> new IllegalStateException("badcase not found: " + badcaseId));
-    }
+    public abstract Badcase adoptAsEvalCase(String badcaseId, String caseId, EvalType evalType, String expected, String category, String operator);
 
     /**
-     * 从聊天留痕回查这条 badcase 对应的一问一答。
-     *
-     * <p>取不到就返回空上下文而不是抛错：聊天留痕是可选能力（{@code chat-log.store-mode}），
-     * 没开时 badcase 仍该被记下来，只是筛选时得靠 sessionId 去别处翻。</p>
+     * 忽略：噪声反馈或质检误报。
      */
-    private DialogContext resolveContext(String sessionId, String messageId) {
-        if (chatStore == null || !StringUtils.hasText(sessionId)) {
-            return DialogContext.empty();
-        }
-        // findBySession 返回按 id 升序的一页，最新的在末尾
-        List<ChatMessage> messages = chatStore.findBySession(sessionId, null, CONTEXT_LOOKBACK);
-        int replyIndex = locateReply(messages, messageId);
-        if (replyIndex < 0) {
-            return DialogContext.empty();
-        }
-        String agentReply = messages.get(replyIndex).content();
-        // 机器人回复往前找最近一条用户消息，中间可能穿插系统消息
-        for (int i = replyIndex - 1; i >= 0; i--) {
-            if (messages.get(i).senderType() == TicketActorType.USER) {
-                return new DialogContext(messages.get(i).content(), agentReply);
-            }
-        }
-        return new DialogContext(null, agentReply);
-    }
-
-    /** 定位被反馈的那条回复：给了 messageId 就精确匹配，没给（质检来源）则取最后一条机器人回复。 */
-    private int locateReply(List<ChatMessage> messages, String messageId) {
-        for (int i = messages.size() - 1; i >= 0; i--) {
-            ChatMessage message = messages.get(i);
-            if (StringUtils.hasText(messageId)) {
-                if (messageId.equals(message.messageId())) {
-                    return i;
-                }
-            } else if (message.senderType() == TicketActorType.BOT) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    /** 回查到的对话上下文。 */
-    private record DialogContext(String userInput, String agentReply) {
-        static DialogContext empty() {
-            return new DialogContext(null, null);
-        }
-    }
+    public abstract Badcase ignore(String badcaseId, String reason, String operator);
 }

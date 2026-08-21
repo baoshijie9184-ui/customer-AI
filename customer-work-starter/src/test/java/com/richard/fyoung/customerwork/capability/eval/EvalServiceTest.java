@@ -48,7 +48,7 @@ class EvalServiceTest {
     @BeforeEach
     void setUp() {
         store = new InMemoryEvalRunStore();
-        service = new EvalService(new IntentEvalRunner(orchestrator()), store,
+        service = new EvalServiceImpl(new IntentEvalRunner(orchestrator()), store,
             new InMemoryEvalCaseStore(), absentProvider(), absentProvider(), absentProvider());
     }
 
@@ -130,7 +130,7 @@ class EvalServiceTest {
     void qualityRun_withoutChatService_shouldFailFastWithReason() {
         ObjectProvider<JudgeModel> judgeProvider = mock(ObjectProvider.class);
         when(judgeProvider.getIfAvailable()).thenReturn(message -> null);
-        EvalService withJudge = new EvalService(new IntentEvalRunner(orchestrator()), store,
+        EvalService withJudge = new EvalServiceImpl(new IntentEvalRunner(orchestrator()), store,
             new InMemoryEvalCaseStore(), judgeProvider, absentProvider(), absentProvider());
 
         IllegalStateException error = assertThrows(IllegalStateException.class,

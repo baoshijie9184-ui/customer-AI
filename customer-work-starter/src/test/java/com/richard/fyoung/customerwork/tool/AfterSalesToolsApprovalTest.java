@@ -9,6 +9,7 @@ import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.richard.fyoung.customerwork.capability.approval.PendingApprovalServiceImpl;
 
 /**
  * 退款工具与审批闭环的接线单测：注入 PendingApprovalService 后，submitRefund 登记待审单且回执带审批单号；
@@ -19,7 +20,7 @@ class AfterSalesToolsApprovalTest {
 
     @Test
     void submitRefund_shouldRegisterPendingApproval_whenServicePresent() {
-        PendingApprovalService svc = new PendingApprovalService();
+        PendingApprovalService svc = new PendingApprovalServiceImpl();
         AfterSalesTools tools = new AfterSalesTools(new MockAfterSalesBackend(), svc);
 
         String reply = tools.submitRefund("O1", "299.00", "七天无理由").block(Duration.ofSeconds(2));

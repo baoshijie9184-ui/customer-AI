@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-
 import java.time.LocalDateTime;
 
 /**
@@ -24,16 +23,7 @@ import java.time.LocalDateTime;
  * 线程里安全调用（如 AI 代码审查异步完成后的回调线程）。</p>
  * @author owlzhangfq@gmail.com
  */
-@Service
-public class SiteMessageService {
-
-    private static final Logger log = LoggerFactory.getLogger(SiteMessageService.class);
-
-    private final SiteMessageMapper siteMessageMapper;
-
-    public SiteMessageService(SiteMessageMapper siteMessageMapper) {
-        this.siteMessageMapper = siteMessageMapper;
-    }
+public interface SiteMessageService {
 
     /**
      * 投递一条站内消息（通用入口）。title/bizType 为必填业务约束，交由调用方保证；这里只做落库。
@@ -45,18 +35,7 @@ public class SiteMessageService {
      * @param bizId   业务主键（可空）
      * @param link    前端跳转路由（可空）
      */
-    public void send(Long userId, String title, String content, String bizType, String bizId, String link) {
-        SiteMessage message = new SiteMessage();
-        message.setUserId(userId);
-        message.setTitle(title);
-        message.setContent(content);
-        message.setBizType(bizType);
-        message.setBizId(bizId);
-        message.setLink(link);
-        message.setReadFlag(SiteMessage.UNREAD);
-        siteMessageMapper.insert(message);
-        log.info("site message sent, userId={}, bizType={}, bizId={}", userId, bizType, bizId);
-    }
+    public abstract void send(Long userId, String title, String content, String bizType, String bizId, String link);
 
     /**
      * 分页查询当前用户的站内消息：可选按已读标记过滤，未读优先、同组按创建时间倒序。
@@ -64,49 +43,20 @@ public class SiteMessageService {
      * @param userId   当前用户
      * @param readFlag 已读标记过滤（null 表示不过滤）
      */
-    public PageResult<SiteMessageVO> page(Long userId, Integer readFlag, long pageNum, long pageSize) {
-        LambdaQueryWrapper<SiteMessage> wrapper = new LambdaQueryWrapper<SiteMessage>()
-            .eq(SiteMessage::getUserId, userId)
-            .eq(readFlag != null, SiteMessage::getReadFlag, readFlag)
-            .orderByAsc(SiteMessage::getReadFlag)
-            .orderByDesc(SiteMessage::getCreateTime);
-        IPage<SiteMessage> page = siteMessageMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
-        return PageResult.of(page.convert(SiteMessageVO::from));
-    }
+    public abstract PageResult<SiteMessageVO> page(Long userId, Integer readFlag, long pageNum, long pageSize);
 
-    /** 当前用户的未读消息数。 */
-    public long unreadCount(Long userId) {
-        return siteMessageMapper.selectCount(new LambdaQueryWrapper<SiteMessage>()
-            .eq(SiteMessage::getUserId, userId)
-            .eq(SiteMessage::getReadFlag, SiteMessage.UNREAD));
-    }
+    /**
+     * 当前用户的未读消息数。
+     */
+    public abstract long unreadCount(Long userId);
 
-    /** 标记单条消息已读：校验归属，非本人/不存在快速失败。已读幂等。 */
-    public void markRead(Long id, Long userId) {
-        SiteMessage message = siteMessageMapper.selectById(id);
-        if (message == null) {
-            throw new BizException(ResultCode.RESOURCE_NOT_FOUND, "消息不存在: " + id);
-        }
-        if (!message.getUserId().equals(userId)) {
-            throw new BizException(ResultCode.FORBIDDEN, "无权操作他人消息");
-        }
-        if (SiteMessage.READ == message.getReadFlag()) {
-            return;
-        }
-        SiteMessage update = new SiteMessage();
-        update.setId(id);
-        update.setReadFlag(SiteMessage.READ);
-        update.setReadTime(LocalDateTime.now());
-        siteMessageMapper.updateById(update);
-    }
+    /**
+     * 标记单条消息已读：校验归属，非本人/不存在快速失败。已读幂等。
+     */
+    public abstract void markRead(Long id, Long userId);
 
-    /** 标记当前用户全部未读消息为已读。 */
-    public void markAllRead(Long userId) {
-        LambdaUpdateWrapper<SiteMessage> wrapper = new LambdaUpdateWrapper<SiteMessage>()
-            .eq(SiteMessage::getUserId, userId)
-            .eq(SiteMessage::getReadFlag, SiteMessage.UNREAD)
-            .set(SiteMessage::getReadFlag, SiteMessage.READ)
-            .set(SiteMessage::getReadTime, LocalDateTime.now());
-        siteMessageMapper.update(null, wrapper);
-    }
+    /**
+     * 标记当前用户全部未读消息为已读。
+     */
+    public abstract void markAllRead(Long userId);
 }

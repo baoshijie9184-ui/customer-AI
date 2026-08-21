@@ -6,8 +6,8 @@ import com.richard.fyoung.customerwork.core.dto.IntentResult;
 import com.richard.fyoung.customerwork.core.service.CustomerServiceService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
@@ -31,13 +31,13 @@ class CustomerServiceControllerTest {
     @Autowired
     private WebTestClient webTestClient;
 
-    @MockBean
+    @MockitoBean
     private CustomerServiceService service;
 
-    @MockBean
+    @MockitoBean
     private com.richard.fyoung.customerwork.core.agent.MultiAgentOrchestrator multiAgentOrchestrator;
 
-    @MockBean
+    @MockitoBean
     private com.richard.fyoung.customerwork.core.agent.AguiService aguiService;
 
     @Test

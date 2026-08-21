@@ -19,6 +19,7 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -63,7 +64,7 @@ public class OtelServerTraceWebFilter implements WebFilter {
     private static final TextMapGetter<HttpHeaders> HEADER_GETTER = new TextMapGetter<>() {
         @Override
         public Iterable<String> keys(HttpHeaders carrier) {
-            return carrier.keySet();
+            return carrier == null ? List.of() : carrier.headerNames();
         }
 
         @Override

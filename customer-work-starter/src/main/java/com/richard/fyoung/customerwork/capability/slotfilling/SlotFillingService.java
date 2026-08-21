@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-
 import java.util.Map;
 import java.util.Optional;
 
@@ -24,77 +23,20 @@ import java.util.Optional;
  * </ol>
  * @author owlzhangfq@gmail.com
  */
-@Service
-public class SlotFillingService {
-
-    private static final Logger log = LoggerFactory.getLogger(SlotFillingService.class);
-
-    private final SlotFillingStore store;
+public interface SlotFillingService {
 
     /**
-     * Spring 注入构造。
-     *
-     * <p>必须标 {@code @Autowired}：本类同时存在无参构造，Spring 对「多构造器 + 存在无参 + 无
-     * {@code @Autowired}」会回退到无参构造 → 永远用内存实现、配置的落库 Store 空转。</p>
+     * 提交一轮用户输入，推进表单收集。
      */
-    @Autowired
-    public SlotFillingService(SlotFillingStore store) {
-        this.store = store;
-    }
+    public abstract SlotFillingResult submit(String sessionId, SlotFillingForm form, String userText);
 
-    /** 无参构造（兼容旧测试与无 Spring 场景）。 */
-    public SlotFillingService() {
-        this.store = new InMemorySlotFillingStore();
-    }
+    /**
+     * 放弃当前会话的某表单收集（用户中途取消）。
+     */
+    public abstract void reset(String sessionId, String formName);
 
-    /** 提交一轮用户输入，推进表单收集。 */
-    public SlotFillingResult submit(String sessionId, SlotFillingForm form, String userText) {
-        String key = sessionId + ":" + form.getName();
-        SlotFillingProgress progress = store.findOrCreate(key);
-
-        // 1) 上一轮在追问的自由文本槽位：整句作为其值
-        if (progress.getAsking() != null) {
-            Slot asked = findSlot(form, progress.getAsking());
-            if (asked != null && asked.getPattern() == null && StringUtils.hasText(userText)) {
-                progress.getCollected().put(asked.getName(), userText.trim());
-            }
-        }
-        // 2) 带正则的未填槽位：尝试抽取
-        for (Slot slot : form.getSlots()) {
-            if (!progress.getCollected().containsKey(slot.getName())) {
-                String v = slot.extract(userText);
-                if (v != null) {
-                    progress.getCollected().put(slot.getName(), v);
-                }
-            }
-        }
-        // 3) 第一个 required 且未填 → 追问
-        for (Slot slot : form.getSlots()) {
-            if (slot.isRequired() && !progress.getCollected().containsKey(slot.getName())) {
-                progress.setAsking(slot.getName());
-                store.save(key, progress);
-                log.info("slot-filling: form={}, session={}, asking={}", form.getName(), sessionId, slot.getName());
-                return new SlotFillingResult(form.getName(), false, slot.getAskPrompt(), progress.snapshot());
-            }
-        }
-        // 完成：清理状态
-        Map<String, String> values = progress.snapshot();
-        store.delete(key);
-        log.info("slot-filling completed: form={}, session={}, values={}", form.getName(), sessionId, values.keySet());
-        return new SlotFillingResult(form.getName(), true, null, values);
-    }
-
-    /** 放弃当前会话的某表单收集（用户中途取消）。 */
-    public void reset(String sessionId, String formName) {
-        store.delete(sessionId + ":" + formName);
-    }
-
-    /** 只读窥视某会话某表单的当前收集进度（供故障诊断，不推进/不创建状态）。 */
-    public Optional<SlotFillingProgress> peek(String sessionId, String formName) {
-        return store.find(sessionId + ":" + formName);
-    }
-
-    private Slot findSlot(SlotFillingForm form, String name) {
-        return form.getSlots().stream().filter(s -> s.getName().equals(name)).findFirst().orElse(null);
-    }
+    /**
+     * 只读窥视某会话某表单的当前收集进度（供故障诊断，不推进/不创建状态）。
+     */
+    public abstract Optional<SlotFillingProgress> peek(String sessionId, String formName);
 }

@@ -8,6 +8,8 @@ import reactor.core.publisher.Mono;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.richard.fyoung.customerwork.capability.approval.PendingApprovalServiceImpl;
+import com.richard.fyoung.customerwork.capability.handoff.HandoffServiceImpl;
 
 /**
  * 验证扩展点：使用者自定义后端可被工具壳直接驱动；ToolRegistrar 用自定义后端时工具组完整注册。
@@ -45,8 +47,8 @@ class ToolBackendOverrideTest {
             new com.richard.fyoung.customerwork.tool.backend.MockProductBackend(),
             new com.richard.fyoung.customerwork.tool.backend.MockMemberBackend(),
             new com.richard.fyoung.customerwork.tool.backend.MockComplaintBackend(),
-            new com.richard.fyoung.customerwork.capability.approval.PendingApprovalService(),
-            new com.richard.fyoung.customerwork.capability.handoff.HandoffService(),
+            new PendingApprovalServiceImpl(),
+            new HandoffServiceImpl(),
             null)
             .registerBusinessTools(toolkit);
 

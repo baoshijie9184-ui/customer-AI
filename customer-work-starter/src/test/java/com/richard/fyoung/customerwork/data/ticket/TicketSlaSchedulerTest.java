@@ -38,7 +38,7 @@ class TicketSlaSchedulerTest {
     }
 
     private TicketService serviceWith(InMemoryTicketStore store) {
-        return new TicketService(store, TicketTestSupport.providerOf());
+        return new TicketServiceImpl(store, TicketTestSupport.providerOf());
     }
 
     private long past() {

@@ -50,7 +50,7 @@ class SensitiveWordHitLogServiceTest {
             mock(SensitiveWordHitLogMapper.class), extMapper);
         ContentGuardGatewayProvider provider = mock(ContentGuardGatewayProvider.class);
         when(provider.get()).thenReturn(gateway);
-        service = new SensitiveWordHitLogService(provider);
+        service = new SensitiveWordHitLogServiceImpl(provider);
         when(extMapper.countByAction(any())).thenReturn(List.of());
         when(extMapper.countByDirection(any())).thenReturn(List.of());
         when(extMapper.topWords(any(), anyInt())).thenReturn(List.of());

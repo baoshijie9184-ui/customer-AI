@@ -40,7 +40,7 @@ class CustomerServiceServiceTest {
     private CustomerServiceAgentFactory factory;
     private ReActAgent agent;
     private SessionStateManager sessionStateManager;
-    private CustomerServiceService service;
+    private CustomerServiceServiceImpl service;
 
     @BeforeEach
     void setUp() {
@@ -50,7 +50,7 @@ class CustomerServiceServiceTest {
         when(factory.createAgent(anyString())).thenReturn(agent);
         when(factory.contextFor(anyString())).thenAnswer(inv ->
             RuntimeContext.builder().userId("tenant").sessionId(inv.getArgument(0)).build());
-        service = new CustomerServiceService(factory, sessionStateManager);
+        service = new CustomerServiceServiceImpl(factory, sessionStateManager);
     }
 
     private Msg assistantMsg(String text) {
@@ -181,7 +181,7 @@ class CustomerServiceServiceTest {
         boolean result = service.interrupt("active");
 
         org.junit.jupiter.api.Assertions.assertTrue(result);
-        verify(agent).interrupt(any(RuntimeContext.class));
+        verify(agent).interrupt();
     }
 
     @Test
@@ -268,7 +268,7 @@ class CustomerServiceServiceTest {
         CustomerWorkProperties props = new CustomerWorkProperties();
         props.getStream().setIdleTimeoutSeconds(1);
         CustomerServiceService timedService =
-            new CustomerServiceService(factory, sessionStateManager, props);
+            new CustomerServiceServiceImpl(factory, sessionStateManager, props);
         // 永不产元素、也不完成的流
         when(agent.streamEvents(anyList(), any(RuntimeContext.class)))
             .thenReturn(Flux.never());
@@ -285,7 +285,7 @@ class CustomerServiceServiceTest {
         CustomerWorkProperties props = new CustomerWorkProperties();
         props.getStream().setIdleTimeoutSeconds(0);
         CustomerServiceService noTimeoutService =
-            new CustomerServiceService(factory, sessionStateManager, props);
+            new CustomerServiceServiceImpl(factory, sessionStateManager, props);
         when(agent.streamEvents(anyList(), any(RuntimeContext.class)))
             .thenReturn(Flux.just(new AgentResultEvent(assistantMsg("好"))));
 

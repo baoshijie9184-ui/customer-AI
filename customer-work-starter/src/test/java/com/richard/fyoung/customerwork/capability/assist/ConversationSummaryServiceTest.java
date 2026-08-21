@@ -30,7 +30,7 @@ class ConversationSummaryServiceTest {
 
     private static final String SESSION = "conv-summary-1";
 
-    private final AgentAssistService assistService = new AgentAssistService();
+    private final AgentAssistService assistService = new AgentAssistServiceImpl();
     private final CustomerWorkProperties properties = new CustomerWorkProperties();
 
     /** mock Model：一次性调用返回给定文本（模拟 LLM 输出）。 */
@@ -57,7 +57,7 @@ class ConversationSummaryServiceTest {
         String json = "{\"oneLineSummary\":\"用户要退款\",\"userIntent\":\"退款\",\"emotion\":\"不满\","
             + "\"triedSolutions\":[\"已引导自助退款\"],\"pendingIssues\":[\"退款未到账\"],"
             + "\"suggestedNextStep\":\"核实订单后手动退款\",\"suggestedReply\":\"您好，马上为您核实\"}";
-        ConversationSummaryService service = new ConversationSummaryService(
+        ConversationSummaryService service = new ConversationSummaryServiceImpl(
             modelReturning(json), storeWith("我要退款", "怎么还没到账"), assistService, properties);
 
         ConversationSummary summary = service.summarize(SESSION);
@@ -72,7 +72,7 @@ class ConversationSummaryServiceTest {
 
     @Test
     void summarize_shouldDegrade_whenModelReturnsNonJson() {
-        ConversationSummaryService service = new ConversationSummaryService(
+        ConversationSummaryService service = new ConversationSummaryServiceImpl(
             modelReturning("这是一段不守格式的自由文本"), storeWith("我要退款"), assistService, properties);
 
         ConversationSummary summary = service.summarize(SESSION);
@@ -86,7 +86,7 @@ class ConversationSummaryServiceTest {
     void summarize_shouldDegrade_whenModelThrows() {
         Model model = mock(Model.class);
         when(model.stream(any(), any(), any())).thenReturn(Flux.error(new RuntimeException("model down")));
-        ConversationSummaryService service = new ConversationSummaryService(
+        ConversationSummaryService service = new ConversationSummaryServiceImpl(
             model, storeWith("我要退款"), assistService, properties);
 
         ConversationSummary summary = service.summarize(SESSION);
@@ -101,7 +101,7 @@ class ConversationSummaryServiceTest {
         Model model = mock(Model.class);
         when(model.stream(any(), any(), any())).thenReturn(Flux.error(
             new AssertionError("model should not be called when history is empty")));
-        ConversationSummaryService service = new ConversationSummaryService(
+        ConversationSummaryService service = new ConversationSummaryServiceImpl(
             model, new InMemoryChatMessageStore(), assistService, properties);
 
         ConversationSummary summary = service.summarize("empty-session");

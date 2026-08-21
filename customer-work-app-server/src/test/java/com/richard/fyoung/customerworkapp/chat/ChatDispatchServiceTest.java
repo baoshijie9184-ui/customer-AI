@@ -56,7 +56,7 @@ class ChatDispatchServiceTest {
         customerServiceService = mock(CustomerServiceService.class);
         keywordDetector = mock(HandoffKeywordDetector.class);
         registry = mock(WsSessionRegistry.class);
-        dispatch = new ChatDispatchService(ticketService, chatLogService, customerServiceService,
+        dispatch = new ChatDispatchServiceImpl(ticketService, chatLogService, customerServiceService,
             keywordDetector, registry);
         // 落库统一返回一条带 messageId 的消息（AI 流式收尾需要读 messageId）
         lenient().when(chatLogService.append(any(), any(), any(), any(), any()))

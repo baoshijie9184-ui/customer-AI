@@ -1,6 +1,8 @@
 package com.richard.fyoung.customerwork.infra.config;
 
 import org.junit.jupiter.api.Test;
+
+import java.nio.file.Path;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,7 +29,7 @@ class XxlJobSchedulerConfigTest {
         assertEquals("customer-work-executor", cfg.getAppname());
         assertEquals(9999, cfg.getPort());
         // 执行器日志目录默认落系统临时目录（项目内不产生 ./data）
-        assertTrue(cfg.getLogPath().endsWith("customer-work/xxl-job/jobhandler"),
+        assertTrue(Path.of(cfg.getLogPath()).endsWith(Path.of("customer-work", "xxl-job", "jobhandler")),
             "执行器日志目录应在系统临时根下: " + cfg.getLogPath());
     }
 

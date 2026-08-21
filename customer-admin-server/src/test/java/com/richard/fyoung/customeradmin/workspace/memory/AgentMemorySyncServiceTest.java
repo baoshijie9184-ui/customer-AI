@@ -36,7 +36,7 @@ class AgentMemorySyncServiceTest {
     @BeforeEach
     void setUp() {
         store = mock(AgentMemoryStore.class);
-        service = new AgentMemorySyncService(store);
+        service = new AgentMemorySyncServiceImpl(store);
     }
 
     @Test

@@ -11,7 +11,7 @@ import java.util.List;
  * 默认激活组语义的 Toolkit：把"空 activatedGroups"解释为"未初始化 → 沿用构建期默认激活组"，
  * 而非"停用全部分组工具"。
  *
- * <p>背景（AgentScope 2.0.0 GA 实测行为）：配置了 AgentStateStore 时，{@code ReActAgent} 每次调用
+ * <p>背景（AgentScope 2.0.2 实测行为）：配置了 AgentStateStore 时，{@code ReActAgent} 每次调用
  * 会先用会话槽状态里的 activatedGroups <b>全量覆盖</b> Toolkit 的激活组（先全部停用再按集合激活），
  * 推理时也只按该集合解析工具 schema。新会话的 fresh state 集合为空 → 构建期
  * {@code createToolGroup(active=true)} 声明的业务工具组被整体清空，模型只能看到未分组的基础工具

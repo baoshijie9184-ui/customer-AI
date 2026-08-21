@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class QualityInspectionServiceTest {
 
-    private final QualityInspectionService svc = new QualityInspectionService();
+    private final QualityInspectionService svc = new QualityInspectionServiceImpl();
 
     @Test
     void compliantReplies_shouldPass() {

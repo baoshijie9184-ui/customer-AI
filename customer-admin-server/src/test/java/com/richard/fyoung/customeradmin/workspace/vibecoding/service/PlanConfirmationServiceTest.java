@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class PlanConfirmationServiceTest {
 
-    private final PlanConfirmationService service = new PlanConfirmationService();
+    private final PlanConfirmationService service = new PlanConfirmationServiceImpl();
 
     private PlanEvent planEvent(String planId) {
         return new PlanEvent(planId, List.of(new PlanAction("RUN_COMMAND", "rm -rf x", "执行破坏性命令")), "执行破坏性命令", true, 300);

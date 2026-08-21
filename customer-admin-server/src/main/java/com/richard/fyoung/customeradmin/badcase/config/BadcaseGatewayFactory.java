@@ -9,6 +9,7 @@ import com.richard.fyoung.customerwork.infra.gateway.CrossDbGateway;
 import com.richard.fyoung.customerwork.tool.backend.mapper.KnowledgeMapper;
 
 import java.util.List;
+import com.richard.fyoung.customerwork.capability.badcase.BadcaseServiceImpl;
 
 /**
  * 把客服端库的跨库环境装配成 badcase 回流服务。
@@ -40,7 +41,7 @@ final class BadcaseGatewayFactory {
     }
 
     static BadcaseService build(CrossDbGateway gateway) {
-        return new BadcaseService(
+        return new BadcaseServiceImpl(
             new MybatisBadcaseStore(gateway.getMapper(BadcaseMapper.class)),
             new MybatisEvalCaseStore(gateway.getMapper(EvalCaseMapper.class)),
             null,

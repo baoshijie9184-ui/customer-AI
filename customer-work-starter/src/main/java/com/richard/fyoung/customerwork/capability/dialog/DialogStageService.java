@@ -16,57 +16,25 @@ import org.springframework.stereotype.Service;
  * 跨实例共享，避免请求被负载均衡到不同实例时"阶段归零"回 {@code GREETING}。</p>
  * @author owlzhangfq@gmail.com
  */
-@Service
-public class DialogStageService {
-
-    private static final Logger log = LoggerFactory.getLogger(DialogStageService.class);
-
-    private final DialogStageStore store;
+public interface DialogStageService {
 
     /**
-     * Spring 注入构造：使用自动装配的 DialogStageStore Bean。
-     *
-     * <p>必须标 {@code @Autowired}：本类同时存在无参构造，Spring 对「多构造器 + 存在无参 + 无
-     * {@code @Autowired}」会回退到无参构造 → 永远用内存实现、配置的落库 Store 空转。</p>
+     * 当前阶段；会话为空或未记录时为 {@link DialogStage#GREETING}。
      */
-    @Autowired
-    public DialogStageService(DialogStageStore store) {
-        this.store = store;
-    }
+    public abstract DialogStage current(String sessionId);
 
-    /** 无参构造（兼容旧测试与无 Spring 场景）：使用默认内存存储。 */
-    public DialogStageService() {
-        this.store = new InMemoryDialogStageStore();
-    }
+    /**
+     * 显式设置阶段（业务事件驱动）。
+     */
+    public abstract void set(String sessionId, DialogStage stage);
 
-    /** 当前阶段；会话为空或未记录时为 {@link DialogStage#GREETING}。 */
-    public DialogStage current(String sessionId) {
-        if (sessionId == null) {
-            return DialogStage.GREETING;
-        }
-        return store.find(sessionId).orElse(DialogStage.GREETING);
-    }
+    /**
+     * 沿主链路推进一个阶段，返回新阶段。
+     */
+    public abstract DialogStage advance(String sessionId);
 
-    /** 显式设置阶段（业务事件驱动）。 */
-    public void set(String sessionId, DialogStage stage) {
-        if (sessionId == null || stage == null) {
-            return;
-        }
-        store.set(sessionId, stage);
-        log.info("dialog stage set: session={}, stage={}", sessionId, stage);
-    }
-
-    /** 沿主链路推进一个阶段，返回新阶段。 */
-    public DialogStage advance(String sessionId) {
-        DialogStage next = current(sessionId).next();
-        set(sessionId, next);
-        return next;
-    }
-
-    /** 会话结束时清理阶段状态。 */
-    public void reset(String sessionId) {
-        if (sessionId != null) {
-            store.remove(sessionId);
-        }
-    }
+    /**
+     * 会话结束时清理阶段状态。
+     */
+    public abstract void reset(String sessionId);
 }

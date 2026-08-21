@@ -9,7 +9,6 @@ import com.richard.fyoung.customerwork.capability.eval.EvalRun;
 import com.richard.fyoung.customerwork.capability.eval.EvalRunStore;
 import com.richard.fyoung.customerwork.capability.eval.EvalType;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 /**
@@ -20,43 +19,27 @@ import java.util.List;
  * 给出不同结论，而运营看到的是后台这一份，排查时却对着客服端那一份，很难发现。</p>
  * @author owlzhangfq@gmail.com
  */
-@Service
-public class EvalAdminService {
+public interface EvalAdminService {
 
-    private final EvalGatewayProvider gatewayProvider;
-    private final EvalTriggerClient triggerClient;
+    /**
+     * 某类型最近若干次运行（时间倒序），用于趋势线与列表。
+     */
+    public abstract List<EvalRun> recent(EvalType type, int limit);
 
-    public EvalAdminService(EvalGatewayProvider gatewayProvider, EvalTriggerClient triggerClient) {
-        this.gatewayProvider = gatewayProvider;
-        this.triggerClient = triggerClient;
-    }
-
-    /** 某类型最近若干次运行（时间倒序），用于趋势线与列表。 */
-    public List<EvalRun> recent(EvalType type, int limit) {
-        return gatewayProvider.get().findRecent(type, limit);
-    }
-
-    /** 单次运行详情（含失败明细与完整原始指标）。 */
-    public EvalRun detail(String runId) {
-        return gatewayProvider.get().find(runId)
-            .orElseThrow(() -> new BizException(ResultCode.RESOURCE_NOT_FOUND, "评测运行记录不存在：" + runId));
-    }
+    /**
+     * 单次运行详情（含失败明细与完整原始指标）。
+     */
+    public abstract EvalRun detail(String runId);
 
     /**
      * 某次运行与它上一版的对比。
      *
      * <p>对比逻辑直接复用 starter 的 {@link EvalComparison#of}，后台不重算。</p>
      */
-    public EvalComparison comparison(String runId) {
-        EvalRunStore store = gatewayProvider.get();
-        EvalRun current = store.find(runId)
-            .orElseThrow(() -> new BizException(ResultCode.RESOURCE_NOT_FOUND, "评测运行记录不存在：" + runId));
-        return EvalComparison.of(current,
-            store.findBaseline(current.evalType(), current.runId()).orElse(null));
-    }
+    public abstract EvalComparison comparison(String runId);
 
-    /** 触发一次评测（转发到客服端执行），返回本次与上一版的对比。 */
-    public EvalComparison trigger(EvalType type, String remark) {
-        return triggerClient.trigger(type, remark);
-    }
+    /**
+     * 触发一次评测（转发到客服端执行），返回本次与上一版的对比。
+     */
+    public abstract EvalComparison trigger(EvalType type, String remark);
 }

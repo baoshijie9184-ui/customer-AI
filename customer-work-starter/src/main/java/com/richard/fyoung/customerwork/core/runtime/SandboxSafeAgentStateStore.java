@@ -8,8 +8,8 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * {@link AgentStateStore} 装饰器：规避 {@code agentscope-harness}（2.0.0 GA）与
- * {@code agentscope-extensions-mysql}（2.0.0 GA）组合使用时的官方框架 bug——
+ * {@link AgentStateStore} 装饰器：规避 {@code agentscope-harness} 与
+ * {@code agentscope-extensions-mysql} 在 2.0.2 组合使用时仍存在的框架不兼容——
  * {@code HarnessAgent} 的 {@code SessionSandboxStateStore} 内部固定给沙箱状态槽位拼出
  * {@code agentId + "sandbox/agent/"}（{@link io.agentscope.harness.agent.IsolationScope#AGENT}
  * 场景，其余三种 IsolationScope 也都硬编码了 {@code /} 前缀，反解字节码逐一确认过），

@@ -46,7 +46,7 @@ public class DeadLetterConfig {
                                                ObjectProvider<DeadLetterHandler> handlerProvider,
                                                ObjectProvider<MeterRegistry> meterRegistryProvider) {
         List<DeadLetterHandler> handlers = handlerProvider.orderedStream().toList();
-        return new DeadLetterService(store, properties.getDeadLetter(), handlers,
+        return new DeadLetterServiceImpl(store, properties.getDeadLetter(), handlers,
             meterRegistryProvider.getIfAvailable());
     }
 

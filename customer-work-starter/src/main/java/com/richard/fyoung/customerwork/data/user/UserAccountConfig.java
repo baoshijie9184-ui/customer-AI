@@ -39,6 +39,6 @@ public class UserAccountConfig {
     @Bean
     @ConditionalOnMissingBean(UserAccountService.class)
     public UserAccountService userAccountService(UserAccountStore userAccountStore) {
-        return new UserAccountService(userAccountStore);
+        return new UserAccountServiceImpl(userAccountStore);
     }
 }

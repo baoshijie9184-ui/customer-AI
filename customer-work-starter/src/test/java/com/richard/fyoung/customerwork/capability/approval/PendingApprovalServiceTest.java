@@ -20,7 +20,7 @@ class PendingApprovalServiceTest {
 
     @Test
     void submit_shouldCreatePendingAndBeListable() {
-        PendingApprovalService svc = new PendingApprovalService();
+        PendingApprovalService svc = new PendingApprovalServiceImpl();
         ApprovalRequest req = svc.submit(ApprovalType.REFUND, "s1", "O1", "299.00", "七天无理由");
 
         assertEquals(ApprovalStatus.PENDING, req.getStatus());
@@ -31,7 +31,7 @@ class PendingApprovalServiceTest {
 
     @Test
     void approve_shouldTransitionAndTriggerCallback() {
-        PendingApprovalService svc = new PendingApprovalService();
+        PendingApprovalService svc = new PendingApprovalServiceImpl();
         AtomicReference<ApprovalRequest> approved = new AtomicReference<>();
         svc.onApprove(approved::set);
 
@@ -47,7 +47,7 @@ class PendingApprovalServiceTest {
 
     @Test
     void approve_shouldMarkExecutionFailed_whenCallbackThrows_withoutPropagating() {
-        PendingApprovalService svc = new PendingApprovalService();
+        PendingApprovalService svc = new PendingApprovalServiceImpl();
         svc.onApprove(r -> {
             throw new RuntimeException("downstream payout failed");
         });
@@ -64,7 +64,7 @@ class PendingApprovalServiceTest {
 
     @Test
     void retryExecutionFailures_shouldRetryAndMarkExecuted_onSubsequentSuccess() {
-        PendingApprovalService svc = new PendingApprovalService();
+        PendingApprovalService svc = new PendingApprovalServiceImpl();
         AtomicInteger callCount = new AtomicInteger(0);
         svc.onApprove(r -> {
             if (callCount.incrementAndGet() == 1) {
@@ -86,7 +86,7 @@ class PendingApprovalServiceTest {
 
     @Test
     void retryExecutionFailures_shouldStopAfterMaxAttempts() {
-        PendingApprovalService svc = new PendingApprovalService();
+        PendingApprovalService svc = new PendingApprovalServiceImpl();
         AtomicInteger callCount = new AtomicInteger(0);
         svc.onApprove(r -> {
             callCount.incrementAndGet();
@@ -107,7 +107,7 @@ class PendingApprovalServiceTest {
 
     @Test
     void retryExecutionFailures_shouldNoop_whenMaxAttemptsAtMostOne() {
-        PendingApprovalService svc = new PendingApprovalService();
+        PendingApprovalService svc = new PendingApprovalServiceImpl();
         svc.onApprove(r -> {
             throw new RuntimeException("fail");
         });
@@ -120,7 +120,7 @@ class PendingApprovalServiceTest {
 
     @Test
     void deny_shouldNotPropagate_whenCallbackThrows() {
-        PendingApprovalService svc = new PendingApprovalService();
+        PendingApprovalService svc = new PendingApprovalServiceImpl();
         svc.onDeny(r -> {
             throw new RuntimeException("notification failed");
         });
@@ -134,7 +134,7 @@ class PendingApprovalServiceTest {
 
     @Test
     void deny_shouldTransitionAndTriggerCallback() {
-        PendingApprovalService svc = new PendingApprovalService();
+        PendingApprovalService svc = new PendingApprovalServiceImpl();
         AtomicReference<ApprovalRequest> denied = new AtomicReference<>();
         svc.onDeny(denied::set);
 
@@ -148,7 +148,7 @@ class PendingApprovalServiceTest {
 
     @Test
     void decide_shouldRejectDoubleDecision() {
-        PendingApprovalService svc = new PendingApprovalService();
+        PendingApprovalService svc = new PendingApprovalServiceImpl();
         ApprovalRequest req = svc.submit(ApprovalType.REFUND, "s1", "O1", "299.00", "测试");
         svc.approve(req.getId(), "alice");
 
@@ -159,7 +159,7 @@ class PendingApprovalServiceTest {
 
     @Test
     void decide_shouldFailFastWhenNotFound() {
-        PendingApprovalService svc = new PendingApprovalService();
+        PendingApprovalService svc = new PendingApprovalServiceImpl();
         assertThrows(NoSuchElementException.class, () -> svc.approve("AP-missing", "alice"));
         assertThrows(NoSuchElementException.class, () -> svc.deny("AP-missing", "bob", "x"));
     }

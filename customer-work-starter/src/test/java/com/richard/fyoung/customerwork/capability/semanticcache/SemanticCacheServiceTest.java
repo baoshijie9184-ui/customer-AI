@@ -39,7 +39,7 @@ class SemanticCacheServiceTest {
     private EmbeddingClient embeddingClient;
     private MultiAgentOrchestrator orchestrator;
     private SemanticCacheProperties properties;
-    private SemanticCacheService service;
+    private SemanticCacheServiceImpl service;
 
     @BeforeEach
     void setUp() {
@@ -53,8 +53,8 @@ class SemanticCacheServiceTest {
         service = newService();
     }
 
-    private SemanticCacheService newService() {
-        return new SemanticCacheService(store, embeddingClient, orchestrator,
+    private SemanticCacheServiceImpl newService() {
+        return new SemanticCacheServiceImpl(store, embeddingClient, orchestrator,
             new TenantResolver(new CustomerWorkProperties()), properties);
     }
 
@@ -176,7 +176,7 @@ class SemanticCacheServiceTest {
     @Test
     void withoutEmbeddingClient_shouldSilentlyDisable() {
         // 缺 API Key 时没有向量，谈不上语义命中；应静默失效而不是报错阻断主链路
-        SemanticCacheService noEmbedding = new SemanticCacheService(store, null, orchestrator,
+        SemanticCacheServiceImpl noEmbedding = new SemanticCacheServiceImpl(store, null, orchestrator,
             new TenantResolver(new CustomerWorkProperties()), properties);
 
         noEmbedding.put("tenantA:sess-1", "发票怎么开", "答案");

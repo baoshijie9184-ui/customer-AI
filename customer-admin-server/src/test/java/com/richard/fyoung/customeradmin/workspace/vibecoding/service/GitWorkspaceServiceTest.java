@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class GitWorkspaceServiceTest {
 
-    private final GitWorkspaceService service = new GitWorkspaceService();
+    private final GitWorkspaceService service = new GitWorkspaceServiceImpl();
 
     @TempDir
     Path workspace;

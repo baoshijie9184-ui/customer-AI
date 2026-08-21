@@ -16,6 +16,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.richard.fyoung.customerwork.capability.handoff.HandoffServiceImpl;
 
 /**
  * 转人工增强器单测：分类打分结果回写工单（HITL 推荐），以及 fail-open（分类抛异常不影响转人工、不改工单）。
@@ -42,7 +43,7 @@ class HandoffCreatedEnricherTest {
         when(classifier.classify(anyString(), any()))
             .thenReturn(new TicketClassification("退款", "refund", TicketPriority.HIGH, "不满"));
 
-        HandoffService handoffService = new HandoffService();
+        HandoffService handoffService = new HandoffServiceImpl();
         HandoffTicket ticket = handoffService.create("sess-1", "涉及大额退款");
 
         enricher(props, handoffService).enrich(ticket);
@@ -63,7 +64,7 @@ class HandoffCreatedEnricherTest {
         props.getRouting().setAssignEnabled(true);
         when(classifier.classify(anyString(), any())).thenThrow(new RuntimeException("boom"));
 
-        HandoffService handoffService = new HandoffService();
+        HandoffService handoffService = new HandoffServiceImpl();
         HandoffTicket ticket = handoffService.create("sess-2", "投诉");
 
         // 不抛异常（fail-open）
@@ -77,7 +78,7 @@ class HandoffCreatedEnricherTest {
     @Test
     void onHandoffCreated_shouldDoNothing_whenBothFlagsOff() {
         CustomerWorkProperties props = new CustomerWorkProperties(); // 默认全关
-        HandoffService handoffService = new HandoffService();
+        HandoffService handoffService = new HandoffServiceImpl();
         HandoffTicket ticket = handoffService.create("sess-3", "咨询");
 
         enricher(props, handoffService).onHandoffCreated(ticket);

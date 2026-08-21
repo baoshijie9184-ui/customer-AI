@@ -49,7 +49,7 @@ class SensitiveWordServiceTest {
             mock(RateLimitRuleMapper.class), mock(SensitiveWordHitLogMapper.class), null);
         ContentGuardGatewayProvider provider = mock(ContentGuardGatewayProvider.class);
         when(provider.get()).thenReturn(gateway);
-        service = new SensitiveWordService(provider);
+        service = new SensitiveWordServiceImpl(provider);
     }
 
     private SensitiveWordEntity row(long id, String word) {

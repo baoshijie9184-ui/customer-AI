@@ -58,7 +58,7 @@ class ChannelRobotServiceTest {
         robotMapper = mock(AiChannelRobotMapper.class);
         agentMapper = mock(AiAgentMapper.class);
         cryptoUtil = new AesGcmCryptoUtil("0123456789abcdef0123456789abcdef");
-        service = new ChannelRobotService(robotMapper, agentMapper, cryptoUtil);
+        service = new ChannelRobotServiceImpl(robotMapper, agentMapper, cryptoUtil);
     }
 
     private ChannelRobotSaveRequest request(String channelType, String appSecret) {

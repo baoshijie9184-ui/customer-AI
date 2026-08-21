@@ -1,7 +1,6 @@
 package com.richard.fyoung.customerwork.data.chatlog;
 
 import com.richard.fyoung.customerwork.data.ticket.TicketActorType;
-
 import java.util.List;
 import java.util.UUID;
 
@@ -12,31 +11,20 @@ import java.util.UUID;
  * 自增主键；历史查询透传存储层的游标翻页能力。</p>
  * @author owlzhangfq@gmail.com
  */
-public class ChatLogService {
+public interface ChatLogService {
 
-    private static final String MESSAGE_ID_PREFIX = "MSG-";
+    /**
+     * 追加一条消息（生成 messageId 并落库，返回带自增主键的持久化副本）。
+     */
+    public abstract ChatMessage append(String sessionId, String ticketId, TicketActorType senderType, String senderId, String content);
 
-    private final ChatMessageStore store;
+    /**
+     * 会话历史（游标翻页，按 id 升序）。
+     */
+    public abstract List<ChatMessage> historyBySession(String sessionId, Long beforeId, int limit);
 
-    public ChatLogService(ChatMessageStore store) {
-        this.store = store;
-    }
-
-    /** 追加一条消息（生成 messageId 并落库，返回带自增主键的持久化副本）。 */
-    public ChatMessage append(String sessionId, String ticketId, TicketActorType senderType,
-                              String senderId, String content) {
-        String messageId = MESSAGE_ID_PREFIX + UUID.randomUUID();
-        ChatMessage message = ChatMessage.of(messageId, sessionId, ticketId, senderType, senderId, content);
-        return store.append(message);
-    }
-
-    /** 会话历史（游标翻页，按 id 升序）。 */
-    public List<ChatMessage> historyBySession(String sessionId, Long beforeId, int limit) {
-        return store.findBySession(sessionId, beforeId, limit);
-    }
-
-    /** 工单历史（游标翻页，按 id 升序）。 */
-    public List<ChatMessage> historyByTicket(String ticketId, Long beforeId, int limit) {
-        return store.findByTicket(ticketId, beforeId, limit);
-    }
+    /**
+     * 工单历史（游标翻页，按 id 升序）。
+     */
+    public abstract List<ChatMessage> historyByTicket(String ticketId, Long beforeId, int limit);
 }

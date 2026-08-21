@@ -40,6 +40,6 @@ public class ChatLogConfig {
     @Bean
     @ConditionalOnMissingBean(ChatLogService.class)
     public ChatLogService chatLogService(ChatMessageStore chatMessageStore) {
-        return new ChatLogService(chatMessageStore);
+        return new ChatLogServiceImpl(chatMessageStore);
     }
 }

@@ -39,7 +39,7 @@ class HandoffServiceWiringTest {
         new ApplicationContextRunner()
             .withBean(CustomerWorkProperties.class)
             .withUserConfiguration(HandoffConfig.class)
-            .withBean(HandoffService.class)
+            .withBean(HandoffServiceImpl.class)
             .run(context -> {
                 HandoffStore store = context.getBean(HandoffStore.class);
                 assertInstanceOf(InMemoryHandoffStore.class, store,
@@ -70,7 +70,7 @@ class HandoffServiceWiringTest {
                 .withBean(CustomerWorkProperties.class, () -> props)
                 .withBean(HandoffMapper.class, () -> mapper)
                 .withUserConfiguration(HandoffConfig.class)
-                .withBean(HandoffService.class)
+                .withBean(HandoffServiceImpl.class)
                 .run(context -> {
                     HandoffStore store = context.getBean(HandoffStore.class);
                     assertInstanceOf(MybatisHandoffStore.class, store,

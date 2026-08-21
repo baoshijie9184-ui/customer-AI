@@ -8,10 +8,11 @@ import com.richard.fyoung.customerwork.data.ticket.TicketCategory;
 import com.richard.fyoung.customerwork.data.ticket.TicketService;
 import com.richard.fyoung.customerwork.safety.security.UserAuthWebFilter;
 import com.richard.fyoung.customerwork.safety.security.UserJwtService;
+import com.richard.fyoung.customerwork.safety.security.UserJwtServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -30,7 +31,7 @@ import static org.mockito.Mockito.when;
  * @author owlzhangfq@gmail.com
  */
 @WebFluxTest(UserTicketController.class)
-@Import({CustomerWorkProperties.class, UserJwtService.class, UserAuthWebFilter.class})
+@Import({CustomerWorkProperties.class, UserJwtServiceImpl.class, UserAuthWebFilter.class})
 class UserTicketControllerTest {
 
     private static final String USER_ID = "U1";
@@ -41,10 +42,10 @@ class UserTicketControllerTest {
     @Autowired
     private UserJwtService jwtService;
 
-    @MockBean
+    @MockitoBean
     private TicketService ticketService;
 
-    @MockBean
+    @MockitoBean
     private ChatLogService chatLogService;
 
     private String bearer() {

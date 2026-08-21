@@ -1,6 +1,6 @@
 # AgentScope Java 1.x → 2.0 迁移说明
 
-> 当前依赖：`io.agentscope:agentscope-harness:2.0.0`（GA 正式版，经 `agentscope-bom` 统一管理）
+> 当前依赖：`io.agentscope:agentscope-harness:2.0.2`（经 `agentscope-bom` 统一管理）
 > 迁移路径：`main`（升级前 `io.agentscope:agentscope:1.0.12`）→ `rc2.0`（2.0.0-RC4，已冻结为历史存档）
 > → `ga2.0`（2.0.0 GA 开发分支）→ **现行分支：`main`**（`ga2.0` 已并入，后续新工作直接基于 `main`）
 > JDK 17 / Maven 3.9+ / Spring Boot 3.2.5

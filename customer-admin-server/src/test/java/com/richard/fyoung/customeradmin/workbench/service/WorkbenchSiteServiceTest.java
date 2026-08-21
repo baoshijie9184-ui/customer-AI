@@ -54,7 +54,7 @@ class WorkbenchSiteServiceTest {
     void setUp() {
         siteMapper = mock(WorkbenchSiteMapper.class);
         cryptoUtil = new AesGcmCryptoUtil("0123456789abcdef0123456789abcdef");
-        service = new WorkbenchSiteService(siteMapper, cryptoUtil);
+        service = new WorkbenchSiteServiceImpl(siteMapper, cryptoUtil);
     }
 
     private WorkbenchSiteSaveRequest request(String name, String password) {

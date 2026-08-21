@@ -5,6 +5,7 @@ import com.richard.fyoung.customerwork.infra.config.RuntimeWorkDir;
 import com.richard.fyoung.customerwork.core.memory.ContextMemoryFactory;
 import com.richard.fyoung.customerwork.core.memory.HarnessMemorySyncService;
 import io.agentscope.core.ReActAgent;
+import io.agentscope.core.agent.RuntimeContext;
 import io.agentscope.core.model.GenerateOptions;
 import io.agentscope.core.model.Model;
 import io.agentscope.core.permission.PermissionContextState;
@@ -15,6 +16,7 @@ import io.agentscope.harness.agent.filesystem.spec.LocalFilesystemSpec;
 import io.agentscope.harness.agent.filesystem.spec.SandboxFilesystemSpec;
 import io.agentscope.harness.agent.sandbox.impl.docker.DockerFilesystemSpec;
 import io.agentscope.harness.agent.memory.MemoryConfig;
+import io.agentscope.harness.agent.workspace.WorkspaceManager;
 import io.agentscope.harness.agent.memory.compaction.CompactionConfig;
 import io.agentscope.harness.agent.memory.compaction.ToolResultEvictionConfig;
 import io.agentscope.harness.agent.skill.curator.SkillCuratorConfig;
@@ -25,6 +27,7 @@ import org.springframework.util.StringUtils;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import com.richard.fyoung.customerwork.infra.config.properties.HarnessProperties;
 
 /**
@@ -87,6 +90,7 @@ public class HarnessAgentFactory {
         ReActAgent inner = agentFactory.createAgent(sessionId);
 
         HarnessAgent.Builder builder = HarnessAgent.Builder.fromAgent(inner)
+            .agentId("customer-service")
             .stateStore(stateStore)
             .defaultSessionId(sessionId)
             .permissionContext(permissionContext)
@@ -94,7 +98,9 @@ public class HarnessAgentFactory {
             // generateOptions 触发 NPE。此处显式设置一份保守默认，规避该缺陷；具体模型参数仍以
             // 内层 ReActAgent 的模型配置为准，这里只保证 generateOptions 非空。
             .generateOptions(defaultGenerateOptions())
-            .workspace(resolveWorkspace(cfg.getWorkspaceDir()));
+            .workspace(resolveWorkspace(cfg.getWorkspaceDir()))
+            .maxContextTokens(cfg.getMaxContextTokens())
+            .enableAgentTracingLog(cfg.isAgentTracingLogEnabled());
 
         // 上下文压缩（长对话有界）
         CompactionConfig compaction = contextMemoryFactory.createCompaction();
@@ -106,9 +112,10 @@ public class HarnessAgentFactory {
         // 框架只从 workspace 文件读记忆，故构建前先把 MySQL 里的权威副本水合下来——
         // 否则换机 / 重启 / 清理 workspace 之后，历史记忆对框架就等于不存在。
         if (cfg.isMemoryEnabled()) {
-            memorySyncService.hydrate(resolveWorkspace(cfg.getWorkspaceDir()));
             builder.memory(MemoryConfig.builder().model(model).build());
             log.info("[Harness] layered memory enabled (MEMORY.md + consolidation)");
+        } else {
+            builder.disableMemoryTools().disableMemoryHooks();
         }
 
         // 环境级记忆：跨会话共享的环境记忆
@@ -154,10 +161,17 @@ public class HarnessAgentFactory {
                 builder.subagentFactory(expert.getName(), id -> expert);
             }
             log.info("[Harness] subagents registered: order/after-sales/knowledge experts");
+        } else {
+            builder.disableSubagents().disableDynamicSubagents();
         }
 
         log.info("[Harness] HarnessAgent built for session {}", sessionId);
-        return builder.build();
+        HarnessAgent agent = builder.build();
+        if (cfg.isMemoryEnabled()) {
+            RuntimeContext context = agentFactory.contextFor(sessionId);
+            memorySyncService.hydrate(workspaceFor(agent, context), context, memoryScope(agent, context));
+        }
+        return agent;
     }
 
     /**
@@ -169,12 +183,22 @@ public class HarnessAgentFactory {
      *
      * <p>{@code harness.memory-enabled=false} 时无记忆可回写，直接跳过。</p>
      */
-    public void persistMemory() {
+    public void persistMemory(HarnessAgent agent, RuntimeContext context) {
         HarnessProperties cfg = properties.getHarness();
-        if (!cfg.isMemoryEnabled()) {
+        if (!cfg.isMemoryEnabled() || agent == null || context == null) {
             return;
         }
-        memorySyncService.persistIfChanged(resolveWorkspace(cfg.getWorkspaceDir()));
+        memorySyncService.persistIfChanged(
+            workspaceFor(agent, context), context, memoryScope(agent, context));
+    }
+
+    private WorkspaceManager workspaceFor(HarnessAgent agent, RuntimeContext context) {
+        return agent.workspaceFor(context.getUserId(), context.getSessionId());
+    }
+
+    /** 长期记忆按 Agent + 用户隔离，多个 session 可共享，同一租户的不同客户不串写。 */
+    private String memoryScope(HarnessAgent agent, RuntimeContext context) {
+        return agent.getAgentId() + ":" + context.getUserId();
     }
 
     /**
@@ -234,6 +258,16 @@ public class HarnessAgentFactory {
         Path workspace = Path.of(dir == null || dir.isBlank() ? RuntimeWorkDir.of("workspace") : dir);
         try {
             Files.createDirectories(workspace);
+            Path agentsMd = workspace.resolve("AGENTS.md");
+            if (Files.notExists(agentsMd)) {
+                try (java.io.InputStream template = HarnessAgentFactory.class.getResourceAsStream(
+                    "/customerwork/workspace/AGENTS.md")) {
+                    if (template != null) {
+                        Files.copy(template, agentsMd, StandardCopyOption.REPLACE_EXISTING);
+                        log.info("[Harness] customer workspace template initialized: {}", agentsMd);
+                    }
+                }
+            }
         } catch (Exception e) {
             log.error("[Harness] create workspace dir failed, code={}", "WORKSPACE_INIT_ERROR", e);
         }

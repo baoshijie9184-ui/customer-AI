@@ -56,7 +56,7 @@ class MenuAggregationServiceTest {
         when(permissionMapper.selectList(null)).thenReturn(defaultMenus());
         AgentService agentService = mock(AgentService.class);
         when(agentService.listEnabled()).thenReturn(List.of(enabledAgent(100L, "customer-helper")));
-        MenuAggregationService service = new MenuAggregationService(permissionMapper, agentService);
+        MenuAggregationService service = new MenuAggregationServiceImpl(permissionMapper, agentService);
 
         try (MockedStatic<StpUtil> stpUtil = mockStatic(StpUtil.class)) {
             stpUtil.when(StpUtil::getPermissionList).thenReturn(List.of("system", "workspace"));
@@ -78,7 +78,7 @@ class MenuAggregationServiceTest {
         when(permissionMapper.selectList(null)).thenReturn(defaultMenus());
         AgentService agentService = mock(AgentService.class);
         when(agentService.listEnabled()).thenReturn(List.of(enabledAgent(100L, "customer-helper")));
-        MenuAggregationService service = new MenuAggregationService(permissionMapper, agentService);
+        MenuAggregationService service = new MenuAggregationServiceImpl(permissionMapper, agentService);
 
         try (MockedStatic<StpUtil> stpUtil = mockStatic(StpUtil.class)) {
             stpUtil.when(StpUtil::getPermissionList).thenReturn(List.of("system"));

@@ -67,7 +67,7 @@ class KnowledgeBaseServiceTest {
         knowledgeBaseMapper = mock(AiKnowledgeBaseMapper.class);
         agentKnowledgeBaseMapper = mock(AiAgentKnowledgeBaseMapper.class);
         searchClient = mock(KnowledgeSearchClient.class);
-        service = new KnowledgeBaseService(knowledgeBaseMapper, agentKnowledgeBaseMapper,
+        service = new KnowledgeBaseServiceImpl(knowledgeBaseMapper, agentKnowledgeBaseMapper,
             new AesGcmCryptoUtil(TEST_SECRET_KEY), searchClient, new AdminRagProperties());
         // 默认探测成功（个别用例覆写为失败）
         when(searchClient.searchOne(any(KnowledgeBaseEndpoint.class), anyString()))

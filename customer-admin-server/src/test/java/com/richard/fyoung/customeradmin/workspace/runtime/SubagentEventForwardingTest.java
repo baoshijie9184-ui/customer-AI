@@ -253,9 +253,14 @@ class SubagentEventForwardingTest {
         Msg userMsg = Msg.builder().role(MsgRole.USER)
             .textContent("帮我写一份产品文档").build();
 
-        List<AgentEvent> events = parent.streamEvents(List.of(userMsg), ctx)
-            .collectList().block(BLOCK_TIMEOUT);
-        return events != null ? events : Collections.emptyList();
+        try {
+            List<AgentEvent> events = parent.streamEvents(List.of(userMsg), ctx)
+                .collectList().block(BLOCK_TIMEOUT);
+            return events != null ? events : Collections.emptyList();
+        } finally {
+            // AgentScope 2.0.1+ 会在 close() 中解绑状态/Workspace 资源；Windows 下不关闭会占用 @TempDir。
+            parent.close();
+        }
     }
 
     /** 子 Agent：纯内层 ReActAgent，模型直接产出一段文本，一轮内收敛（镜像 buildSubagentInner）。 */

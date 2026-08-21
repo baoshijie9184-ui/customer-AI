@@ -21,7 +21,7 @@ class UserAccountServiceTest {
 
     private void init() {
         store = new InMemoryUserAccountStore();
-        service = new UserAccountService(store);
+        service = new UserAccountServiceImpl(store);
     }
 
     @Test

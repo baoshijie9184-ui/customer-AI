@@ -39,6 +39,6 @@ public class CsatConfig {
     @Bean
     @ConditionalOnMissingBean(CsatService.class)
     public CsatService csatService(CsatStore store, TenantResolver tenantResolver) {
-        return new CsatService(store, tenantResolver);
+        return new CsatServiceImpl(store, tenantResolver);
     }
 }

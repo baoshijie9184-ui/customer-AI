@@ -39,6 +39,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.richard.fyoung.customerwork.data.attachment.AttachmentParseServiceImpl;
 
 /**
  * {@link ChatAttachmentService} 单测：委托 starter {@link AttachmentParseService} 的多格式解析落库链路。
@@ -73,9 +74,9 @@ class ChatAttachmentServiceTest {
             new VisionOcrParser(fakeOcr));
         // 文件存储只剩 MinIO 一种实现，单测用内存替身（本类验证的是附件编排，不是对象存储往返）
         fileStorage = new InMemoryTestFileStorage();
-        AttachmentParseService parseService = new AttachmentParseService(parsers, store, fileStorage, properties);
+        AttachmentParseService parseService = new AttachmentParseServiceImpl(parsers, store, fileStorage, properties);
 
-        service = new ChatAttachmentService(parseService, store, fileStorage);
+        service = new ChatAttachmentServiceImpl(parseService, store, fileStorage);
     }
 
     @Test

@@ -23,7 +23,7 @@ class ProactiveNotificationServiceTest {
             message.set(m);
             return Mono.empty();
         };
-        ProactiveNotificationService svc = new ProactiveNotificationService(capturing);
+        ProactiveNotificationService svc = new ProactiveNotificationServiceImpl(capturing);
 
         svc.notifyOrderStatus("20260613001", "已发货", "user-123").block();
 
@@ -34,7 +34,7 @@ class ProactiveNotificationServiceTest {
     @Test
     void sendSatisfactionSurvey_shouldPushSurveyMessage() {
         AtomicReference<String> message = new AtomicReference<>();
-        ProactiveNotificationService svc = new ProactiveNotificationService((t, m) -> {
+        ProactiveNotificationService svc = new ProactiveNotificationServiceImpl((t, m) -> {
             message.set(m);
             return Mono.empty();
         });

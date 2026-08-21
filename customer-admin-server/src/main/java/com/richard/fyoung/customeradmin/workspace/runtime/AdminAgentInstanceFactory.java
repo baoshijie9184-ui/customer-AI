@@ -47,7 +47,7 @@ import io.agentscope.core.model.GenerateOptions;
 import io.agentscope.core.model.Model;
 import io.agentscope.core.permission.PermissionContextState;
 import io.agentscope.core.skill.AgentSkill;
-import io.agentscope.core.skill.SkillBox;
+import io.agentscope.core.skill.repository.AgentSkillRepository;
 import io.agentscope.core.skill.repository.FileSystemSkillRepository;
 import io.agentscope.core.state.AgentStateStore;
 import io.agentscope.core.tool.Toolkit;
@@ -380,9 +380,9 @@ public class AdminAgentInstanceFactory {
         applyToolExecutionConfig(builder, agent);
 
         Set<String> skillToolNames = new HashSet<>();
-        SkillBox skillBox = buildSkillBox(agent, toolkit, skillToolNames);
-        if (skillBox != null) {
-            builder.skillBox(skillBox);
+        AgentSkillRepository skillRepository = buildSkillRepository(agent, skillToolNames);
+        if (skillRepository != null) {
+            builder.skillRepository(skillRepository).dynamicSkillsEnabled(true);
         }
         toolSourceCache.put(agentCode, new ToolSourceInfo(skillToolNames, mcpToolNames));
         // 登记本智能体的 MCP/Skill 工具名，供采集中间件把 onActing 分段归为 MCP/SKILL（未登记者默认 TOOL）
@@ -427,6 +427,7 @@ public class AdminAgentInstanceFactory {
             ? new SandboxSafeAgentStateStore(stateStore) : stateStore;
         Path workspace = resolveWorkspace(agentCode);
         HarnessAgent.Builder harnessBuilder = HarnessAgent.Builder.fromAgent(inner)
+            .agentId(agentCode)
             .stateStore(harnessStateStore)
             .defaultSessionId(agentCode)
             .permissionContext(permissionContext)
@@ -847,7 +848,7 @@ public class AdminAgentInstanceFactory {
      * 在运行时不存在，技能功能不完整。落盘前先清空该 skill 目录，避免上一版残留文件混入。
      * {@code skillToolNames} 收集本次注册进来的工具名，同 {@link #buildToolkit} 的差集手法。
      */
-    private SkillBox buildSkillBox(AiAgent agent, Toolkit toolkit, Set<String> skillToolNames) {
+    private AgentSkillRepository buildSkillRepository(AiAgent agent, Set<String> skillToolNames) {
         List<Long> skillIds = agentSkillMapper.selectList(
                 new LambdaQueryWrapper<AiAgentSkill>().eq(AiAgentSkill::getAgentId, agent.getId()))
             .stream().map(AiAgentSkill::getSkillId).collect(Collectors.toList());
@@ -870,17 +871,16 @@ public class AdminAgentInstanceFactory {
                     Files.write(target, skillFile.getContent());
                 }
             }
-            List<AgentSkill> skills = new FileSystemSkillRepository(skillDir, false).getAllSkills();
-            SkillBox skillBox = new SkillBox(toolkit);
-            Set<String> before = new HashSet<>(toolkit.getToolNames());
+            AgentSkillRepository skillRepository = new FileSystemSkillRepository(skillDir, false);
+            List<AgentSkill> skills = skillRepository.getAllSkills();
+            skillToolNames.addAll(skillRepository.getAllSkillNames());
             for (AgentSkill skill : skills) {
-                skillBox.registerSkill(skill);
+                if (skill.getName() != null) {
+                    skillToolNames.add(skill.getName());
+                }
             }
-            Set<String> added = new HashSet<>(toolkit.getToolNames());
-            added.removeAll(before);
-            skillToolNames.addAll(added);
             log.info("[workspace] skills loaded: agentCode={} count={}", agent.getAgentCode(), skills.size());
-            return skillBox;
+            return skillRepository;
         } catch (Exception e) {
             log.error("[workspace] skill loading failed (skip skill wiring), code={}, agentCode={}",
                 "SKILL_LOAD_ERROR", agent.getAgentCode(), e);

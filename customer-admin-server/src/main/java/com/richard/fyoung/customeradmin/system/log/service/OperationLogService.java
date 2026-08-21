@@ -14,28 +14,10 @@ import org.springframework.util.StringUtils;
  * 操作日志查询（只读，无增删改——需求文档只要求记录与查看）。
  * @author owlzhangfq@gmail.com
  */
-@Service
-public class OperationLogService {
+public interface OperationLogService {
 
-    private final OperationLogMapper operationLogMapper;
-
-    public OperationLogService(OperationLogMapper operationLogMapper) {
-        this.operationLogMapper = operationLogMapper;
-    }
-
-    /** {@code PageQuery.keyword} 匹配 username；{@code PageQuery.status} 复用为 result 过滤（1成功/0失败）。 */
-    public PageResult<SysOperationLog> page(PageQuery query) {
-        LambdaQueryWrapper<SysOperationLog> wrapper = new LambdaQueryWrapper<>();
-        if (StringUtils.hasText(query.getKeyword())) {
-            wrapper.like(SysOperationLog::getUsername, query.getKeyword());
-        }
-        if (query.getStatus() != null) {
-            wrapper.eq(SysOperationLog::getResult, query.getStatus());
-        }
-        wrapper.orderBy(true, "asc".equalsIgnoreCase(query.getSortOrder()), SysOperationLog::getCreateTime);
-
-        IPage<SysOperationLog> page = operationLogMapper.selectPage(
-            new Page<>(query.getPageNum(), query.getPageSize()), wrapper);
-        return PageResult.of(page);
-    }
+    /**
+     * {@code PageQuery.keyword} 匹配 username；{@code PageQuery.status} 复用为 result 过滤（1成功/0失败）。
+     */
+    public abstract PageResult<SysOperationLog> page(PageQuery query);
 }

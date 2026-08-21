@@ -1,7 +1,11 @@
 package com.richard.fyoung.customerchannel.access.support;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.netty.resolver.DefaultAddressResolverGroup;
+import org.springframework.http.codec.json.Jackson2JsonDecoder;
+import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 
@@ -22,6 +26,15 @@ public final class WebClients {
     /** 返回已配置 JDK 地址解析器的 WebClient.Builder，接入层所有 WebClient 一律从这里出。 */
     public static WebClient.Builder builder() {
         HttpClient httpClient = HttpClient.create().resolver(DefaultAddressResolverGroup.INSTANCE);
-        return WebClient.builder().clientConnector(new ReactorClientHttpConnector(httpClient));
+        JsonMapper mapper = JsonMapper.builder().findAndAddModules().build();
+        ExchangeStrategies strategies = ExchangeStrategies.builder()
+                .codecs(codecs -> {
+                    codecs.defaultCodecs().jackson2JsonDecoder(new Jackson2JsonDecoder(mapper));
+                    codecs.defaultCodecs().jackson2JsonEncoder(new Jackson2JsonEncoder(mapper));
+                })
+                .build();
+        return WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .exchangeStrategies(strategies);
     }
 }

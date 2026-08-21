@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class SlotFillingServiceTest {
 
-    private final SlotFillingService svc = new SlotFillingService();
+    private final SlotFillingService svc = new SlotFillingServiceImpl();
 
     @Test
     void shouldCollectAcrossMultipleTurns() {

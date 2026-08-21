@@ -33,7 +33,7 @@ class HandoffSlaSchedulerTest {
         props.getHumanHandoff().setSlaPendingSeconds(1);
 
         InMemoryHandoffStore store = new InMemoryHandoffStore();
-        HandoffService svc = new HandoffService(store);
+        HandoffService svc = new HandoffServiceImpl(store);
         HandoffTicket created = svc.create("s1", "投诉升级");
         // 模拟超时：把创建时间改到 2 秒前，重新 save（InMemoryHandoffStore.save 是 upsert）
         store.save(new HandoffTicket(created.getId(), "s1", "投诉升级", System.currentTimeMillis() - 2000));
@@ -52,7 +52,7 @@ class HandoffSlaSchedulerTest {
         props.getHumanHandoff().setSlaClaimedSeconds(1);
 
         InMemoryHandoffStore store = new InMemoryHandoffStore();
-        HandoffService svc = new HandoffService(store);
+        HandoffService svc = new HandoffServiceImpl(store);
         HandoffTicket ticket = svc.create("s1", "test");
         svc.claim(ticket.getId(), "alice");
         // 模拟接单已久：直接改 claimedAtMs 为 2 秒前重新落库
@@ -75,7 +75,7 @@ class HandoffSlaSchedulerTest {
         CustomerWorkProperties props = new CustomerWorkProperties();
         props.getHumanHandoff().setSlaPendingSeconds(60);
 
-        HandoffService svc = new HandoffService();
+        HandoffService svc = new HandoffServiceImpl();
         svc.create("s1", "test");
 
         SimpleMeterRegistry registry = new SimpleMeterRegistry();
@@ -91,7 +91,7 @@ class HandoffSlaSchedulerTest {
         // slaPendingSeconds/slaClaimedSeconds 默认 0 = 禁用
 
         InMemoryHandoffStore store = new InMemoryHandoffStore();
-        HandoffService svc = new HandoffService(store);
+        HandoffService svc = new HandoffServiceImpl(store);
         HandoffTicket ticket = svc.create("s1", "test");
         store.save(new HandoffTicket(ticket.getId(), "s1", "test", System.currentTimeMillis() - 999_000));
 

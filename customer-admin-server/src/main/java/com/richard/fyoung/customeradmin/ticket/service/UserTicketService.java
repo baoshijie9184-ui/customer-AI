@@ -9,7 +9,6 @@ import com.richard.fyoung.customeradmin.ticket.dto.TicketPageResult;
 import com.richard.fyoung.customeradmin.ticket.dto.WsCredentialVO;
 import com.richard.fyoung.customerwork.safety.security.AgentAccessCredential;
 import org.springframework.stereotype.Service;
-
 import java.time.Duration;
 import java.util.List;
 
@@ -18,64 +17,31 @@ import java.util.List;
  * 本模块不建业务表）；WS 接入凭证在本地用 {@link AgentAccessCredential} 现签，不走 8080。
  * @author owlzhangfq@gmail.com
  */
-@Service
-public class UserTicketService {
+public interface UserTicketService {
 
-    private final CustomerWorkTicketClient client;
-    private final CustomerWorkClientProperties properties;
+    public abstract TicketPageResult page(TicketPageQuery query);
 
-    public UserTicketService(CustomerWorkTicketClient client, CustomerWorkClientProperties properties) {
-        this.client = client;
-        this.properties = properties;
-    }
+    public abstract TicketDetailVO detail(String id);
 
-    public TicketPageResult page(TicketPageQuery query) {
-        return client.page(query);
-    }
+    public abstract List<TicketMessageVO> messages(String id, Long beforeId, Integer limit);
 
-    public TicketDetailVO detail(String id) {
-        return client.detail(id);
-    }
+    public abstract void claim(String id);
 
-    public List<TicketMessageVO> messages(String id, Long beforeId, Integer limit) {
-        return client.messages(id, beforeId, limit);
-    }
+    public abstract void reply(String id, String content);
 
-    public void claim(String id) {
-        client.claim(id);
-    }
+    public abstract void hold(String id, String reason);
 
-    public void reply(String id, String content) {
-        client.reply(id, content);
-    }
+    public abstract void resume(String id);
 
-    public void hold(String id, String reason) {
-        client.hold(id, reason);
-    }
+    public abstract void transfer(String id, String toAgent);
 
-    public void resume(String id) {
-        client.resume(id);
-    }
+    public abstract void resolve(String id, String note);
 
-    public void transfer(String id, String toAgent) {
-        client.transfer(id, toAgent);
-    }
+    public abstract void close(String id, String reason);
 
-    public void resolve(String id, String note) {
-        client.resolve(id, note);
-    }
+    public abstract void updatePriority(String id, String priority);
 
-    public void close(String id, String reason) {
-        client.close(id, reason);
-    }
-
-    public void updatePriority(String id, String priority) {
-        client.updatePriority(id, priority);
-    }
-
-    public void updateCategory(String id, String category) {
-        client.updateCategory(id, category);
-    }
+    public abstract void updateCategory(String id, String category);
 
     /**
      * 签发坐席 WS 接入凭证：客服浏览器凭此直连 8080 的 {@code /ws/agent}。
@@ -83,10 +49,5 @@ public class UserTicketService {
      *
      * @param agentId 当前登录坐席登录名（由 Controller 从 Sa-Token 解析后传入）
      */
-    public WsCredentialVO issueWsCredential(String agentId) {
-        long expiresAtMs = System.currentTimeMillis()
-            + Duration.ofHours(properties.getCredentialExpireHours()).toMillis();
-        String token = AgentAccessCredential.sign(agentId, expiresAtMs, properties.getAgentSecret());
-        return new WsCredentialVO(token, properties.getWsUrl(), expiresAtMs, agentId);
-    }
+    public abstract WsCredentialVO issueWsCredential(String agentId);
 }

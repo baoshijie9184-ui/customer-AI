@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import com.richard.fyoung.customerworkapp.service.AvatarStorageServiceImpl;
 
 /**
  * 头像访问路由测试：对象存储命中出图、缺失 404。
@@ -41,7 +42,7 @@ class AvatarResourceConfigTest {
     private WebTestClient client(AttachmentFileStorage storage) {
         CustomerWorkProperties properties = new CustomerWorkProperties();
         properties.getUserAuth().getAvatar().setUrlPrefix("/api/avatars/");
-        AvatarStorageService service = new AvatarStorageService(properties, storage);
+        AvatarStorageService service = new AvatarStorageServiceImpl(properties, storage);
         RouterFunction<ServerResponse> router =
             new AvatarResourceConfig().avatarResourceRouter(properties, service);
         return WebTestClient.bindToRouterFunction(router).build();

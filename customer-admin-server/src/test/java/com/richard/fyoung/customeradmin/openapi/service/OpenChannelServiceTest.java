@@ -59,7 +59,7 @@ class OpenChannelServiceTest {
         robotMapper = mock(AiChannelRobotMapper.class);
         sessionMapper = mock(AiChannelSessionMapper.class);
         cryptoUtil = new AesGcmCryptoUtil("0123456789abcdef0123456789abcdef");
-        service = new OpenChannelService(robotMapper, sessionMapper, cryptoUtil);
+        service = new OpenChannelServiceImpl(robotMapper, sessionMapper, cryptoUtil);
     }
 
     @Test

@@ -4,7 +4,6 @@ import com.richard.fyoung.customeradmin.auth.config.AdminLdapProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
 import javax.naming.AuthenticationException;
 import javax.naming.Context;
 import javax.naming.NamingException;
@@ -22,46 +21,11 @@ import java.util.Hashtable;
  * {@code InitialDirContext} + simple 认证），域控地址/UPN 后缀为可配置项。</p>
  * @author owlzhangfq@gmail.com
  */
-@Service
-public class LdapAuthService {
-
-    private static final Logger log = LoggerFactory.getLogger(LdapAuthService.class);
-
-    private final AdminLdapProperties properties;
-
-    public LdapAuthService(AdminLdapProperties properties) {
-        this.properties = properties;
-    }
+public interface LdapAuthService {
 
     /**
      * @param username 不含域名后缀的登录名（如 RichardFyoung）；若用户输入时已带 {@code @xxx}，
      *                  由调用方（AuthService）先行归一化再传入。
      */
-    public LdapBindResult bind(String username, String password) {
-        String userPrincipal = username + properties.getDomainSuffix();
-
-        Hashtable<String, String> env = new Hashtable<>();
-        env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
-        env.put(Context.PROVIDER_URL, properties.getUrl());
-        env.put(Context.SECURITY_AUTHENTICATION, "simple");
-        env.put(Context.SECURITY_PRINCIPAL, userPrincipal);
-        env.put(Context.SECURITY_CREDENTIALS, password);
-        env.put("com.sun.jndi.ldap.connect.timeout", String.valueOf(properties.getConnectTimeoutMillis()));
-        env.put("com.sun.jndi.ldap.read.timeout", String.valueOf(properties.getConnectTimeoutMillis()));
-
-        try {
-            InitialDirContext ctx = new InitialDirContext(env);
-            ctx.close();
-            return LdapBindResult.SUCCESS;
-        } catch (AuthenticationException e) {
-            // AD 典型返回：AcceptSecurityContext error, data 52e（用户名或密码错误/账号禁用等）
-            log.info("LDAP bind failed, invalid credentials, principal={}", userPrincipal);
-            return LdapBindResult.INVALID_CREDENTIALS;
-        } catch (NamingException e) {
-            // 连接超时/域控不可达/协议异常等，非用户名密码问题
-            log.error("LDAP bind error, service unavailable, principal={}, url={}",
-                userPrincipal, properties.getUrl(), e);
-            return LdapBindResult.SERVICE_UNAVAILABLE;
-        }
-    }
+    public abstract LdapBindResult bind(String username, String password);
 }

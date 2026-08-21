@@ -35,7 +35,7 @@ class DevToolHttpServiceTest {
 
     // 本地临时 server 监听 127.0.0.1（环回），默认模式会被 SSRF 收口拦截；
     // 用白名单模式显式放行 127.0.0.1，让转换用例照常验证。
-    private final DevToolHttpService service = new DevToolHttpService(loopbackAllowedGuard());
+    private final DevToolHttpService service = new DevToolHttpServiceImpl(loopbackAllowedGuard());
 
     private static SystemToolHttpGuard loopbackAllowedGuard() {
         AdminSystemToolProperties properties = new AdminSystemToolProperties();
@@ -118,7 +118,7 @@ class DevToolHttpServiceTest {
     void blockedTarget_shouldBeTranslatedToBizException() {
         // 默认模式（空白名单）：环回地址被 SSRF 收口拦截，fast fail 抛业务异常
         DevToolHttpService defaultService =
-            new DevToolHttpService(new SystemToolHttpGuard(new AdminSystemToolProperties()));
+            new DevToolHttpServiceImpl(new SystemToolHttpGuard(new AdminSystemToolProperties()));
 
         BizException ex = assertThrows(BizException.class,
             () -> defaultService.send(request("GET", baseUrl + "/echo")));

@@ -51,6 +51,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.richard.fyoung.customeradmin.workspace.vibecoding.service.PlanConfirmationServiceImpl;
 
 /**
  * {@link ChatService} 单测：重点覆盖 {@code toChunks} 对框架细粒度事件流（{@code streamEvents}）的分流——
@@ -96,8 +97,8 @@ class ChatServiceTest {
         // ExecutionModeRegistry / PlanConfirmationService 用真实实例（进程内内存、无外部依赖）：
         // 未指定模式 + 空通道时行为等价于改造前，不影响本测试聚焦的事件分流断言。
         // 敏感词过滤与内容风控配置传 null provider：本测试聚焦事件分流，出站过滤整体跳过
-        chatService = new ChatService(agentInstanceCache, agentInstanceFactory, historyCache, memorySyncService,
-            new ExecutionModeRegistry(), new PlanConfirmationService(), chatAttachmentService, null, null);
+        chatService = new ChatServiceImpl(agentInstanceCache, agentInstanceFactory, historyCache, memorySyncService,
+            new ExecutionModeRegistry(), new PlanConfirmationServiceImpl(), chatAttachmentService, null, null);
 
         agent = mock(ReActAgent.class);
         when(agentInstanceCache.getOrBuild("coder")).thenReturn(agent);

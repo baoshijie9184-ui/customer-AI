@@ -26,7 +26,7 @@ class UserJwtServiceTest {
         CustomerWorkProperties props = new CustomerWorkProperties();
         props.getUserAuth().setJwtSecret(SECRET);
         props.getUserAuth().setJwtExpireHours(1);
-        return new UserJwtService(props);
+        return new UserJwtServiceImpl(props);
     }
 
     @Test

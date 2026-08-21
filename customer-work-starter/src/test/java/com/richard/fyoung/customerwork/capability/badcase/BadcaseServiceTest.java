@@ -74,7 +74,7 @@ class BadcaseServiceTest {
             invocation.getArgument(0, KnowledgeDO.class).setId(99L);
             return 1;
         });
-        service = new BadcaseService(badcaseStore, evalCaseStore, chatStore, knowledgeMapper);
+        service = new BadcaseServiceImpl(badcaseStore, evalCaseStore, chatStore, knowledgeMapper);
     }
 
     /** 造一轮一问一答的聊天留痕。 */
@@ -111,7 +111,7 @@ class BadcaseServiceTest {
 
     @Test
     void record_withoutChatLog_shouldStillEnqueue() {
-        BadcaseService noChatLog = new BadcaseService(badcaseStore, evalCaseStore, null, null);
+        BadcaseService noChatLog = new BadcaseServiceImpl(badcaseStore, evalCaseStore, null, null);
 
         Badcase badcase = noChatLog.record(BadcaseSource.NEGATIVE_FEEDBACK, "sess-1", "MSG-1", "差评")
             .orElseThrow();
@@ -156,7 +156,7 @@ class BadcaseServiceTest {
 
     @Test
     void adoptAsEvalCase_withoutUserInput_shouldFailFast() {
-        BadcaseService noChatLog = new BadcaseService(badcaseStore, evalCaseStore, null, null);
+        BadcaseService noChatLog = new BadcaseServiceImpl(badcaseStore, evalCaseStore, null, null);
         Badcase badcase = noChatLog.record(BadcaseSource.NEGATIVE_FEEDBACK, "sess-1", "MSG-1", "差评")
             .orElseThrow();
 
@@ -182,7 +182,7 @@ class BadcaseServiceTest {
 
     @Test
     void adoptAsKnowledge_withoutJdbcBackend_shouldFailFast() {
-        BadcaseService noKnowledge = new BadcaseService(badcaseStore, evalCaseStore, chatStore, null);
+        BadcaseService noKnowledge = new BadcaseServiceImpl(badcaseStore, evalCaseStore, chatStore, null);
         Badcase badcase = noKnowledge.record(BadcaseSource.NEGATIVE_FEEDBACK, "sess-1", null, "x")
             .orElseThrow();
 

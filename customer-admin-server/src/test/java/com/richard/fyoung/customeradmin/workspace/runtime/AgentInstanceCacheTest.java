@@ -11,7 +11,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 /**
  * {@link AgentInstanceCache} 单测：惰性重建 + 命中不重建 + evict 后下次调用重新构建。
@@ -30,7 +32,7 @@ class AgentInstanceCacheTest {
         buildCount = new AtomicInteger();
         when(factory.build("agent-a")).thenAnswer(invocation -> {
             buildCount.incrementAndGet();
-            return mock(Agent.class);
+            return mock(Agent.class, withSettings().extraInterfaces(AutoCloseable.class));
         });
     }
 
@@ -44,13 +46,14 @@ class AgentInstanceCacheTest {
     }
 
     @Test
-    void evict_shouldForceRebuild_onNextCall() {
+    void evict_shouldForceRebuild_onNextCall() throws Exception {
         Agent first = cache.getOrBuild("agent-a");
         cache.evict("agent-a");
         Agent second = cache.getOrBuild("agent-a");
 
         assertNotSame(first, second);
         assertEquals(2, buildCount.get());
+        verify((AutoCloseable) first).close();
     }
 
     @Test

@@ -48,7 +48,7 @@ class McpServiceTest {
         AiAgentMapper agentMapper = mock(AiAgentMapper.class);
         AgentInstanceCache agentInstanceCache = mock(AgentInstanceCache.class);
         mcpFactory = mock(AdminMcpFactory.class);
-        service = new McpService(mcpMapper, agentMcpMapper, agentMapper, agentInstanceCache, mcpFactory);
+        service = new McpServiceImpl(mcpMapper, agentMcpMapper, agentMapper, agentInstanceCache, mcpFactory);
     }
 
     @Test

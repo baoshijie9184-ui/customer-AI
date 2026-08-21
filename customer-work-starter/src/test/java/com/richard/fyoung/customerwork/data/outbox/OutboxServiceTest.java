@@ -20,7 +20,7 @@ class OutboxServiceTest {
         InMemoryOutboxStore store = new InMemoryOutboxStore();
         AtomicInteger calls = new AtomicInteger();
         OutboxHandler handler = handler("ticket-event", calls, false);
-        OutboxService service = new OutboxService(store, properties(), List.of(handler));
+        OutboxService service = new OutboxServiceImpl(store, properties(), List.of(handler));
 
         service.publish("ticket-event", "TK-1", "{}");
 
@@ -37,7 +37,7 @@ class OutboxServiceTest {
         OutboxProperties properties = properties();
         properties.setMaxAttempts(2);
         properties.setBaseBackoffMs(0L);
-        OutboxService service = new OutboxService(store, properties,
+        OutboxService service = new OutboxServiceImpl(store, properties,
             List.of(handler("ticket-event", calls, true)));
         service.publish("ticket-event", "TK-1", "{}");
 
@@ -64,7 +64,7 @@ class OutboxServiceTest {
         InMemoryOutboxStore store = new InMemoryOutboxStore();
         OutboxProperties properties = properties();
         properties.setScanIntervalMs(0L);
-        OutboxService service = new OutboxService(store, properties, List.of());
+        OutboxService service = new OutboxServiceImpl(store, properties, List.of());
         service.publish("missing", "A", "{}");
 
         service.dispatchDue();
@@ -79,7 +79,7 @@ class OutboxServiceTest {
         OutboxHandler second = handler("ticket-event", calls, false);
 
         assertThrows(IllegalStateException.class, () ->
-            new OutboxService(new InMemoryOutboxStore(), properties(), List.of(first, second)));
+            new OutboxServiceImpl(new InMemoryOutboxStore(), properties(), List.of(first, second)));
     }
 
     @Test
@@ -97,7 +97,7 @@ class OutboxServiceTest {
                 handledTenant.set(TenantContext.require());
             }
         };
-        OutboxService service = new OutboxService(store, properties(), List.of(handler));
+        OutboxService service = new OutboxServiceImpl(store, properties(), List.of(handler));
         TenantContext.runWith("tenant-a", () -> service.publish("ticket-event", "TK-1", "{}"));
 
         service.dispatchDue();

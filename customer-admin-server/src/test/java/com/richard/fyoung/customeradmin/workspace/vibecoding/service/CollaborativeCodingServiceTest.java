@@ -55,7 +55,7 @@ class CollaborativeCodingServiceTest {
         when(agentInstanceFactory.resolveSessionWorkspace(any(), any())).thenReturn(Path.of(System.getProperty("java.io.tmpdir")));
         when(gitWorkspaceService.changedFilesAgainstBaseline(any())).thenReturn(List.of());
         when(auditService.begin(any(), any(), any())).thenReturn(new AiCodingAuditLog());
-        return new CollaborativeCodingService(agentMapper, properties, agentInstanceFactory,
+        return new CollaborativeCodingServiceImpl(agentMapper, properties, agentInstanceFactory,
             vibeCodingService, gitWorkspaceService, auditService);
     }
 

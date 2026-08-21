@@ -15,7 +15,6 @@ import com.richard.fyoung.customerwork.devtool.DataFormatDevToolOps;
 import com.richard.fyoung.customerwork.devtool.DiffDevToolOps;
 import com.richard.fyoung.customerwork.devtool.JwtDevToolOps;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -35,92 +34,25 @@ import java.util.function.Supplier;
  * <p>隐私边界：JWT 与其密钥只在请求内存中解析，不落库、不写日志。</p>
  * @author owlzhangfq@gmail.com
  */
-@Service
-public class DevToolCalcService {
+public interface DevToolCalcService {
 
-    private final CronDevToolOps cronOps = new CronDevToolOps();
-    private final JwtDevToolOps jwtOps = new JwtDevToolOps();
-    private final DiffDevToolOps diffOps = new DiffDevToolOps();
-    private final DataFormatDevToolOps dataFormatOps = new DataFormatDevToolOps();
+    /**
+     * 解析 cron：校验、逐字段释义、推算后续执行时间。
+     */
+    public abstract DevToolCronExplainResponse explainCron(DevToolCronExplainRequest request);
 
-    /** 解析 cron：校验、逐字段释义、推算后续执行时间。 */
-    public DevToolCronExplainResponse explainCron(DevToolCronExplainRequest request) {
-        CronDevToolOps.CronExplainResult result = call(() ->
-            cronOps.explain(request.getExpression(), request.getCount(), request.getTimezone()));
+    /**
+     * 解析 JWT：拆解 header/payload、解读有效期，可选 HS* 验签。
+     */
+    public abstract DevToolJwtDecodeResponse decodeJwt(DevToolJwtDecodeRequest request);
 
-        List<DevToolCronExplainResponse.Field> fields = new ArrayList<>(result.getFields().size());
-        for (CronDevToolOps.CronFieldDesc desc : result.getFields()) {
-            fields.add(new DevToolCronExplainResponse.Field(
-                desc.getName(), desc.getValue(), desc.getRange(), desc.getDescription()));
-        }
-        DevToolCronExplainResponse response = new DevToolCronExplainResponse();
-        response.setExpression(result.getExpression());
-        response.setTimezone(result.getTimezone());
-        response.setFields(fields);
-        response.setNextTimes(result.getNextTimes());
-        return response;
-    }
+    /**
+     * 行级文本比对。
+     */
+    public abstract DevToolTextDiffResponse diffText(DevToolTextDiffRequest request);
 
-    /** 解析 JWT：拆解 header/payload、解读有效期，可选 HS* 验签。 */
-    public DevToolJwtDecodeResponse decodeJwt(DevToolJwtDecodeRequest request) {
-        JwtDevToolOps.JwtDecodeResult result = call(() ->
-            jwtOps.decode(request.getToken(), request.getSecret(), request.getSecretEncoding()));
-
-        DevToolJwtDecodeResponse response = new DevToolJwtDecodeResponse();
-        response.setAlgorithm(result.getAlgorithm());
-        response.setType(result.getType());
-        response.setHeader(result.getHeader());
-        response.setPayload(result.getPayload());
-        response.setIssuer(result.getIssuer());
-        response.setSubject(result.getSubject());
-        response.setAudience(result.getAudience());
-        response.setJwtId(result.getJwtId());
-        response.setIssuedAt(result.getIssuedAt());
-        response.setNotBefore(result.getNotBefore());
-        response.setExpiresAt(result.getExpiresAt());
-        response.setExpired(result.isExpired());
-        response.setNotYetValid(result.isNotYetValid());
-        response.setSecondsRemaining(result.getSecondsRemaining());
-        response.setUnsigned(result.isUnsigned());
-        response.setSignatureStatus(result.getSignatureStatus());
-        return response;
-    }
-
-    /** 行级文本比对。 */
-    public DevToolTextDiffResponse diffText(DevToolTextDiffRequest request) {
-        DiffDevToolOps.DiffResult result = call(() -> diffOps.diff(
-            request.getOldText(), request.getNewText(),
-            request.getIgnoreWhitespace(), request.getIgnoreCase()));
-
-        List<DevToolTextDiffResponse.Line> lines = new ArrayList<>(result.getLines().size());
-        for (DiffDevToolOps.DiffLine line : result.getLines()) {
-            lines.add(new DevToolTextDiffResponse.Line(
-                line.getType(), line.getOldLineNo(), line.getNewLineNo(), line.getContent()));
-        }
-        DevToolTextDiffResponse response = new DevToolTextDiffResponse();
-        response.setIdentical(result.isIdentical());
-        response.setAddedLines(result.getAddedLines());
-        response.setDeletedLines(result.getDeletedLines());
-        response.setTotalLines(result.getTotalLines());
-        response.setTruncated(result.isTruncated());
-        response.setLines(lines);
-        return response;
-    }
-
-    /** JSON / YAML / XML 互转。 */
-    public DevToolFormatConvertResponse convertFormat(DevToolFormatConvertRequest request) {
-        DataFormatDevToolOps.ConvertResult result = call(() -> dataFormatOps.convert(
-            request.getContent(), request.getSourceFormat(), request.getTargetFormat(), request.getRootName()));
-        return new DevToolFormatConvertResponse(
-            result.getSourceFormat(), result.getTargetFormat(), result.getResult());
-    }
-
-    /** Ops 的入参校验一律抛 IllegalArgumentException，在此统一翻译成带原因的业务异常。 */
-    private <T> T call(Supplier<T> action) {
-        try {
-            return action.get();
-        } catch (IllegalArgumentException e) {
-            throw new BizException(ResultCode.PARAM_INVALID, e.getMessage());
-        }
-    }
+    /**
+     * JSON / YAML / XML 互转。
+     */
+    public abstract DevToolFormatConvertResponse convertFormat(DevToolFormatConvertRequest request);
 }

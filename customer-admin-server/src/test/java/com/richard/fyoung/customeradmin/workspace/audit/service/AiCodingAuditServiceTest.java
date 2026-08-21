@@ -48,7 +48,7 @@ class AiCodingAuditServiceTest {
     void setUp() {
         recorder = mock(AiCodingAuditRecorder.class);
         mapper = mock(AiCodingAuditLogMapper.class);
-        service = new AiCodingAuditService(recorder, mapper);
+        service = new AiCodingAuditServiceImpl(recorder, mapper);
     }
 
     // ===== begin：条目构建 =====

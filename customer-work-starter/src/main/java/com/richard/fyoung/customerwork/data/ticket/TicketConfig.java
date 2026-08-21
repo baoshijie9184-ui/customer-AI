@@ -72,7 +72,7 @@ public class TicketConfig {
     public TicketService ticketService(TicketStore ticketStore,
                                        TicketEventPublisher eventPublisher,
                                        ObjectProvider<CustomerWorkTransactionExecutor> transactionProvider) {
-        return new TicketService(ticketStore, eventPublisher,
+        return new TicketServiceImpl(ticketStore, eventPublisher,
             transactionProvider.getIfAvailable(() -> CustomerWorkTransactionExecutor.DIRECT));
     }
 

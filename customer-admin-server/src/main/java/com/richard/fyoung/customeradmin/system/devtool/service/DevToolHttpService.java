@@ -9,7 +9,6 @@ import com.richard.fyoung.customerwork.safety.security.HttpTargetForbiddenExcept
 import com.richard.fyoung.customerwork.devtool.HttpProxyDevToolOps;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -28,57 +27,11 @@ import java.util.function.Supplier;
  * Location。TLS 走 JDK 默认信任链校验，不做 trust-all。</p>
  * @author owlzhangfq@gmail.com
  */
-@Service
-public class DevToolHttpService {
-
-    private final HttpProxyDevToolOps httpOps;
-
-    public DevToolHttpService(SystemToolHttpGuard httpGuard) {
-        this.httpOps = new HttpProxyDevToolOps(httpGuard.targetGuard());
-    }
+public interface DevToolHttpService {
 
     /**
      * 发起一次 HTTP(S) 调用并返回执行结果；目标服务不可达/超时等收敛进 error 字段，
      * SSRF 拦截与参数非法则 fast fail 抛业务异常。
      */
-    public DevToolHttpSendResponse send(DevToolHttpSendRequest request) {
-        HttpProxyDevToolOps.HttpProxyResult result = call(() -> httpOps.send(
-            request.getMethod(), request.getUrl(), toHeaderPairs(request.getHeaders()), request.getBody()));
-        return DevToolHttpSendResponse.builder()
-            .statusCode(result.getStatusCode())
-            .headers(result.getHeaders())
-            .body(result.getBody())
-            .bodyBytes(result.getBodyBytes())
-            .bodyTruncated(result.isBodyTruncated())
-            .durationMs(result.getDurationMs())
-            .redirectLocation(result.getRedirectLocation())
-            .error(result.getError())
-            .build();
-    }
-
-    /** 页面传来的请求头键值对转成 starter 的入参形态。 */
-    private List<HttpProxyDevToolOps.HeaderPair> toHeaderPairs(List<DevToolHttpSendRequest.HeaderItem> headers) {
-        if (CollectionUtils.isEmpty(headers)) {
-            return List.of();
-        }
-        List<HttpProxyDevToolOps.HeaderPair> pairs = new ArrayList<>(headers.size());
-        for (DevToolHttpSendRequest.HeaderItem item : headers) {
-            pairs.add(new HttpProxyDevToolOps.HeaderPair(item.getName(), item.getValue()));
-        }
-        return pairs;
-    }
-
-    /**
-     * 异常转换单一收口：安全策略拦截转 {@link ResultCode#SYSTEM_TOOL_HTTP_FORBIDDEN}
-     * （与智能体 httpclient 工具同码），其余入参问题（URL/请求头格式）转 {@link ResultCode#PARAM_INVALID}。
-     */
-    private <T> T call(Supplier<T> action) {
-        try {
-            return action.get();
-        } catch (HttpTargetForbiddenException e) {
-            throw new BizException(ResultCode.SYSTEM_TOOL_HTTP_FORBIDDEN, e.getMessage());
-        } catch (IllegalArgumentException e) {
-            throw new BizException(ResultCode.PARAM_INVALID, e.getMessage());
-        }
-    }
+    public abstract DevToolHttpSendResponse send(DevToolHttpSendRequest request);
 }

@@ -46,7 +46,7 @@ class SiteMessageServiceTest {
     @BeforeEach
     void setUp() {
         siteMessageMapper = mock(SiteMessageMapper.class);
-        service = new SiteMessageService(siteMessageMapper);
+        service = new SiteMessageServiceImpl(siteMessageMapper);
     }
 
     @Test

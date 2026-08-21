@@ -11,6 +11,8 @@ import reactor.test.StepVerifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.richard.fyoung.customerwork.data.ticket.TicketServiceImpl;
+import com.richard.fyoung.customerwork.capability.handoff.HandoffServiceImpl;
 
 /**
  * 人工转接工具单测：未注入退化为纯文案兜底；注入 HandoffService 后真实登记；
@@ -33,7 +35,7 @@ class HumanHandoffToolsTest {
 
     @Test
     void transferToHuman_withHandoffService_shouldCreateRealTicket() {
-        HandoffService handoffService = new HandoffService();
+        HandoffService handoffService = new HandoffServiceImpl();
         HumanHandoffTools tools = new HumanHandoffTools(handoffService);
 
         StepVerifier.create(tools.transferToHuman("涉及大额退款"))
@@ -52,10 +54,10 @@ class HumanHandoffToolsTest {
     @Test
     void transferToHuman_withSessionAndTicketService_shouldDriveTicketDomainAndDoubleWrite() {
         InMemoryTicketStore store = new InMemoryTicketStore();
-        TicketService ticketService = new TicketService(store, null);
+        TicketService ticketService = new TicketServiceImpl(store, null);
         ticketService.createForSession("sess-1", "u1", "标题", TicketCategory.COMPLAINT);
 
-        HandoffService handoffService = new HandoffService();
+        HandoffService handoffService = new HandoffServiceImpl();
         HumanHandoffTools tools = new HumanHandoffTools(handoffService, ticketService, "sess-1");
 
         StepVerifier.create(tools.transferToHuman("投诉升级"))
@@ -73,9 +75,9 @@ class HumanHandoffToolsTest {
     @Test
     void transferToHuman_sessionWithoutActiveTicket_shouldNotBreakReply() {
         InMemoryTicketStore store = new InMemoryTicketStore();
-        TicketService ticketService = new TicketService(store, null);
+        TicketService ticketService = new TicketServiceImpl(store, null);
         // 未建单：driveTicketDomain 内部 requestHandoff 抛异常应被吞掉，不阻断话术
-        HandoffService handoffService = new HandoffService();
+        HandoffService handoffService = new HandoffServiceImpl();
         HumanHandoffTools tools = new HumanHandoffTools(handoffService, ticketService, "sess-empty");
 
         StepVerifier.create(tools.transferToHuman("要人工"))

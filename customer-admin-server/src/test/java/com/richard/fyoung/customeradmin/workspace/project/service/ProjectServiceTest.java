@@ -63,7 +63,7 @@ class ProjectServiceTest {
         projectSessionMapper = mock(AiProjectSessionMapper.class);
         agentMapper = mock(AiAgentMapper.class);
         chatHistoryService = mock(ChatHistoryService.class);
-        service = new ProjectService(projectMapper, projectSessionMapper, agentMapper, chatHistoryService);
+        service = new ProjectServiceImpl(projectMapper, projectSessionMapper, agentMapper, chatHistoryService);
     }
 
     private AiProject project(long id, String name) {

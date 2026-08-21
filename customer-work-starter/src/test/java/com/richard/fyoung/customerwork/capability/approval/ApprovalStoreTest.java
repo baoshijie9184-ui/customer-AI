@@ -89,7 +89,7 @@ class ApprovalStoreTest {
 
     @Test
     void pendingApprovalService_withStore_shouldDelegateCorrectly() {
-        PendingApprovalService svc = new PendingApprovalService(store);
+        PendingApprovalService svc = new PendingApprovalServiceImpl(store);
         AtomicReference<ApprovalRequest> approved = new AtomicReference<>();
         svc.onApprove(approved::set);
 
@@ -105,7 +105,7 @@ class ApprovalStoreTest {
 
     @Test
     void pendingApprovalService_defaultConstructor_shouldWork() {
-        PendingApprovalService svc = new PendingApprovalService();
+        PendingApprovalService svc = new PendingApprovalServiceImpl();
         ApprovalRequest req = svc.submit(ApprovalType.REFUND, "s1", "O1", "50", "test");
         assertEquals(ApprovalStatus.PENDING, req.getStatus());
         assertEquals(1, svc.list().size());
@@ -113,7 +113,7 @@ class ApprovalStoreTest {
 
     @Test
     void pendingApprovalService_deny_shouldUpdateStore() {
-        PendingApprovalService svc = new PendingApprovalService(store);
+        PendingApprovalService svc = new PendingApprovalServiceImpl(store);
         ApprovalRequest req = svc.submit(ApprovalType.REFUND, "s1", "O1", "50", "test");
         svc.deny(req.getId(), "bob", "rejected");
 

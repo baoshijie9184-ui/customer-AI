@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class AgentAssistServiceTest {
 
-    private final AgentAssistService svc = new AgentAssistService();
+    private final AgentAssistService svc = new AgentAssistServiceImpl();
 
     @Test
     void shouldSuggestRefundFlow() {

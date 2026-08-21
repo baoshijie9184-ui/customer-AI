@@ -45,7 +45,7 @@ public class OutboxConfig {
                                        ObjectProvider<OutboxHandler> handlerProvider,
                                        ObjectProvider<MeterRegistry> meterRegistryProvider) {
         List<OutboxHandler> handlers = handlerProvider.orderedStream().toList();
-        return new OutboxService(store, properties.getOutbox(), handlers,
+        return new OutboxServiceImpl(store, properties.getOutbox(), handlers,
             meterRegistryProvider.getIfAvailable());
     }
 

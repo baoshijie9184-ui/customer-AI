@@ -10,41 +10,35 @@ import java.util.List;
  * 实现的直接依赖。</p>
  * @author owlzhangfq@gmail.com
  */
-public class AgentCallLogService {
+public interface AgentCallLogService {
 
-    private final AgentCallLogStore store;
+    /**
+     * 分页条件查询主记录（不含明细段）。
+     */
+    public abstract List<AgentCallRecord> page(AgentCallLogQuery query);
 
-    public AgentCallLogService(AgentCallLogStore store) {
-        this.store = store;
-    }
+    /**
+     * 符合条件总数（配合分页）。
+     */
+    public abstract long count(AgentCallLogQuery query);
 
-    /** 分页条件查询主记录（不含明细段）。 */
-    public List<AgentCallRecord> page(AgentCallLogQuery query) {
-        return store.findPage(query);
-    }
+    /**
+     * 按主记录 id 查分段明细（seq 升序）。
+     */
+    public abstract List<AgentCallSegment> segments(long callLogId);
 
-    /** 符合条件总数（配合分页）。 */
-    public long count(AgentCallLogQuery query) {
-        return store.count(query);
-    }
+    /**
+     * 删除一条调用（主记录 + 分段）。
+     */
+    public abstract boolean delete(long id);
 
-    /** 按主记录 id 查分段明细（seq 升序）。 */
-    public List<AgentCallSegment> segments(long callLogId) {
-        return store.findSegments(callLogId);
-    }
+    /**
+     * 汇总统计。
+     */
+    public abstract AgentCallLogSummary summary(AgentCallLogQuery query);
 
-    /** 删除一条调用（主记录 + 分段）。 */
-    public boolean delete(long id) {
-        return store.delete(id);
-    }
-
-    /** 汇总统计。 */
-    public AgentCallLogSummary summary(AgentCallLogQuery query) {
-        return store.summary(query);
-    }
-
-    /** 按天 / 小时趋势聚合。 */
-    public List<AgentCallTrendPoint> trend(AgentCallLogQuery query, TrendGranularity granularity) {
-        return store.trend(query, granularity);
-    }
+    /**
+     * 按天 / 小时趋势聚合。
+     */
+    public abstract List<AgentCallTrendPoint> trend(AgentCallLogQuery query, TrendGranularity granularity);
 }

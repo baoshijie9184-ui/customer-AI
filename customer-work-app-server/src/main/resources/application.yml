@@ -157,10 +157,16 @@ customer-work:
     msg-threshold: 40
     last-keep: 10
   harness:
-    # AgentScope 2.0 Harness 新能力（详见 docs/MIGRATION-2.0.md）
-    # 启用后由 HarnessAgentFactory 经 HarnessAgent.fromAgent(...) 叠加 Plan Mode / Compaction / Subagent / Workspace
-    enabled: false
-    # 工作区 / 沙箱根目录（文件工具、代码执行、子智能体的隔离工作区）
+    # AgentScope 2.0.2 Harness：客户 Agent 默认接入 Workspace；可显式关闭回退轻量 ReActAgent。
+    # Workspace 是 Agent 定义与演进的事实源（AGENTS.md / MEMORY.md / knowledge / skills / sessions / tasks），
+    # 不等同于开发目录；Shell、Git、代码执行等能力仍由 RBAC/Permission 与 sandbox 独立控制。
+    enabled: ${CUSTOMER_WORK_HARNESS_ENABLED:true}
+    # 工作区模板根目录；默认继续遵守本项目“不把运行数据落项目目录”的约定。
+    workspace-dir: ${AGENTSCOPE_WORKSPACE:${java.io.tmpdir}/customer-work/workspace}
+    # WorkspaceContextMiddleware 注入长期记忆的最大 token 预算。
+    max-context-tokens: ${CUSTOMER_WORK_WORKSPACE_MAX_CONTEXT_TOKENS:8000}
+    # 记录 workspace 会话事件日志，供审计、session_search 与恢复使用。
+    agent-tracing-log-enabled: ${CUSTOMER_WORK_AGENT_TRACING_LOG_ENABLED:true}
     # 分层记忆：MEMORY.md 持久画像 + 会话沉淀 + 自动 consolidation
     memory-enabled: false
     # 环境级记忆（跨会话共享的环境记忆标识），留空不启用
@@ -191,13 +197,13 @@ customer-work:
     sandbox:
       # 安全沙箱执行：none（不隔离）| local（本地子进程）| docker（容器隔离）
       # Local/Docker 内置于 Harness；k8s/e2b/daytona/agentrun 远端沙箱需引入 agentscope-extensions-sandbox-*
-      mode: none
+      mode: ${CUSTOMER_WORK_SANDBOX_MODE:none}
       # 隔离粒度：session | user | agent | global
-      isolation-scope: session
+      isolation-scope: ${CUSTOMER_WORK_SANDBOX_ISOLATION_SCOPE:session}
       # docker 模式镜像
-      image: python:3.11-slim
+      image: ${CUSTOMER_WORK_SANDBOX_IMAGE:python:3.11-slim}
       # local 模式工具/代码执行超时秒数
-      execute-timeout-seconds: 60
+      execute-timeout-seconds: ${CUSTOMER_WORK_SANDBOX_TIMEOUT_SECONDS:60}
   skill:
     # Skill 技能库
     enabled: true

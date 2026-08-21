@@ -38,7 +38,7 @@ class TenantServiceTest {
     void setUp() {
         tenantMapper = mock(SysTenantMapper.class);
         provisionService = mock(TenantProvisionService.class);
-        service = new TenantService(tenantMapper, provisionService);
+        service = new TenantServiceImpl(tenantMapper, provisionService);
     }
 
     private SysTenant tenant(Long id, String code, TenantStatus status) {

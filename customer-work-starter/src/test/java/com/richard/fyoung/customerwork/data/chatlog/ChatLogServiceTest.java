@@ -19,7 +19,7 @@ class ChatLogServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ChatLogService(new InMemoryChatMessageStore());
+        service = new ChatLogServiceImpl(new InMemoryChatMessageStore());
     }
 
     @Test

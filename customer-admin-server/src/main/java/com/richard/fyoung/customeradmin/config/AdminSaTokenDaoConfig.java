@@ -1,7 +1,7 @@
 package com.richard.fyoung.customeradmin.config;
 
 import cn.dev33.satoken.dao.SaTokenDao;
-import cn.dev33.satoken.dao.SaTokenDaoRedisJackson;
+import cn.dev33.satoken.dao.SaTokenDaoForRedisTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -40,9 +40,9 @@ public class AdminSaTokenDaoConfig {
     @Bean
     @ConditionalOnProperty(name = "admin.sa-token.redis-persistent", havingValue = "true", matchIfMissing = true)
     public SaTokenDao saTokenDao(RedisConnectionFactory redisConnectionFactory) {
-        SaTokenDaoRedisJackson dao = new SaTokenDaoRedisJackson();
+        SaTokenDaoForRedisTemplate dao = new SaTokenDaoForRedisTemplate();
         // 插件把连接工厂的注入点设计成 init 方法（自动装配时由 @Autowired 触发），这里手动装配
-        // 必须显式调一次，否则内部两个 RedisTemplate 为 null，要到第一次鉴权才 NPE。
+        // 必须显式调一次，否则内部 RedisTemplate 为 null，要到第一次鉴权才 NPE。
         dao.init(redisConnectionFactory);
         log.info("Sa-Token login state persisted to Redis, restart will not kick users out");
         return dao;

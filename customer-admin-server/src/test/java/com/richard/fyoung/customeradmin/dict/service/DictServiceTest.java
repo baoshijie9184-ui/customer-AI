@@ -43,7 +43,7 @@ class DictServiceTest {
         itemMapper = mock(DictItemMapper.class);
         DictGatewayProvider provider = mock(DictGatewayProvider.class);
         when(provider.get()).thenReturn(new DictGateway(typeMapper, itemMapper));
-        service = new DictService(provider);
+        service = new DictServiceImpl(provider);
     }
 
     private DictTypeSaveRequest typeRequest(String code, String name) {

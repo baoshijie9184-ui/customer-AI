@@ -17,7 +17,7 @@ class HandoffRoutingTest {
 
     @Test
     void applyRoutingSuggestion_shouldUpdateFields() {
-        HandoffService service = new HandoffService();
+        HandoffService service = new HandoffServiceImpl();
         HandoffTicket ticket = service.create("s1", "退款");
 
         service.applyRoutingSuggestion(ticket.getId(), "退款", "refund", "HIGH", "不满", "[{\"seatId\":\"S1\"}]");
@@ -32,14 +32,14 @@ class HandoffRoutingTest {
 
     @Test
     void applyRoutingSuggestion_shouldFailOpen_whenTicketMissing() {
-        HandoffService service = new HandoffService();
+        HandoffService service = new HandoffServiceImpl();
         // 不存在的工单：只 error 不抛
         service.applyRoutingSuggestion("HO-missing", "x", "y", "LOW", "z", "[]");
     }
 
     @Test
     void create_shouldTriggerEnricher_whenWired() {
-        HandoffService service = new HandoffService();
+        HandoffService service = new HandoffServiceImpl();
         HandoffCreatedEnricher enricher = mock(HandoffCreatedEnricher.class);
         service.setEnricher(enricher);
 
@@ -57,7 +57,7 @@ class HandoffRoutingTest {
 
     @Test
     void create_shouldNotFail_whenEnricherThrows() {
-        HandoffService service = new HandoffService();
+        HandoffService service = new HandoffServiceImpl();
         HandoffCreatedEnricher enricher = mock(HandoffCreatedEnricher.class);
         org.mockito.Mockito.doThrow(new RuntimeException("boom")).when(enricher).onHandoffCreated(any());
         service.setEnricher(enricher);

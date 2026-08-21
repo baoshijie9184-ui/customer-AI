@@ -29,10 +29,20 @@ public class AgentInstanceCache {
     }
 
     public void evict(String agentCode) {
-        cache.remove(agentCode);
+        close(cache.remove(agentCode));
     }
 
     public void evictAll(Collection<String> agentCodes) {
-        agentCodes.forEach(cache::remove);
+        agentCodes.forEach(this::evict);
+    }
+
+    private void close(Agent agent) {
+        if (agent instanceof AutoCloseable closeable) {
+            try {
+                closeable.close();
+            } catch (Exception e) {
+                throw new IllegalStateException("Close cached agent failed: " + agent.getName(), e);
+            }
+        }
     }
 }

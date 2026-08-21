@@ -63,7 +63,7 @@
 
         <!-- 渠道接入层（access 包）用 WebClient 调 admin 开放 API 并消费 SSE。webflux/reactor-netty 本已随
              customer-work-starter 传递入类路径（本模块 web-application-type=servlet，webflux 仅作 HTTP 客户端）；
-             此处显式声明，令 WebClient 成为一等编译依赖而非隐式传递依赖。版本由 spring-boot 3.2.5 统一管理。 -->
+             此处显式声明，令 WebClient 成为一等编译依赖而非隐式传递依赖。版本由 Spring Boot 4.0.7 统一管理。 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
@@ -88,7 +88,7 @@
         </dependency>
 
         <!-- admin starter 把以下 web 依赖标为 optional（要求宿主自带 web 栈），需显式声明；
-             版本由 spring-boot-starter-parent 3.2.5 统一管理，避免与 starter 的 webflux 版本错配。 -->
+             版本由 spring-boot-starter-parent 4.0.7 统一管理，避免与 starter 的 webflux 版本错配。 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -126,6 +126,27 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.vaadin.external.google</groupId>
+                    <artifactId>android-json</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-restclient</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

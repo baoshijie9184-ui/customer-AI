@@ -17,7 +17,7 @@ class ApprovalTimeoutSchedulerTest {
         props.getHumanApproval().setTimeoutSeconds(1);
         props.getHumanApproval().setTimeoutAction("deny");
 
-        PendingApprovalService svc = new PendingApprovalService();
+        PendingApprovalServiceImpl svc = new PendingApprovalServiceImpl();
         ApprovalRequest req = svc.submit(ApprovalType.REFUND, "s1", "O1", "100", "test");
 
         // 模拟超时：修改创建时间为 2 秒前
@@ -42,7 +42,7 @@ class ApprovalTimeoutSchedulerTest {
         props.getHumanApproval().setTimeoutSeconds(1);
         props.getHumanApproval().setTimeoutAction("escalate");
 
-        PendingApprovalService svc = new PendingApprovalService();
+        PendingApprovalServiceImpl svc = new PendingApprovalServiceImpl();
         ApprovalRequest req = svc.submit(ApprovalType.REFUND, "s1", "O1", "100", "test");
 
         // 模拟超时
@@ -64,7 +64,7 @@ class ApprovalTimeoutSchedulerTest {
     void shouldNotProcess_whenTimeoutDisabled() {
         CustomerWorkProperties props = new CustomerWorkProperties();
         // timeoutSeconds 默认 0 = 禁用
-        PendingApprovalService svc = new PendingApprovalService();
+        PendingApprovalService svc = new PendingApprovalServiceImpl();
         svc.submit(ApprovalType.REFUND, "s1", "O1", "100", "test");
 
         ApprovalTimeoutScheduler scheduler = new ApprovalTimeoutScheduler(props, svc);
@@ -80,7 +80,7 @@ class ApprovalTimeoutSchedulerTest {
         props.getHumanApproval().setTimeoutSeconds(60);
         props.getHumanApproval().setTimeoutAction("deny");
 
-        PendingApprovalService svc = new PendingApprovalService();
+        PendingApprovalService svc = new PendingApprovalServiceImpl();
         svc.submit(ApprovalType.REFUND, "s1", "O1", "100", "test");
 
         ApprovalTimeoutScheduler scheduler = new ApprovalTimeoutScheduler(props, svc);
@@ -95,7 +95,7 @@ class ApprovalTimeoutSchedulerTest {
         CustomerWorkProperties props = new CustomerWorkProperties();
         props.getHumanApproval().setMaxExecutionRetryAttempts(3);
 
-        PendingApprovalService svc = new PendingApprovalService();
+        PendingApprovalService svc = new PendingApprovalServiceImpl();
         svc.onApprove(r -> {
             throw new RuntimeException("boom");
         });

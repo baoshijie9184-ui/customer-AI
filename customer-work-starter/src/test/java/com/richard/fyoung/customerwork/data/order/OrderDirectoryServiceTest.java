@@ -51,7 +51,7 @@ class OrderDirectoryServiceTest {
         MybatisTestSupport.ensureSchema(dataSource);
         orderMapper = MybatisTestSupport.mapper(dataSource, OrderMapper.class);
         userMapper = MybatisTestSupport.mapper(dataSource, UserMapper.class);
-        service = new OrderDirectoryService(providerOf(orderMapper));
+        service = new OrderDirectoryServiceImpl(providerOf(orderMapper));
         cleanup();
         seedUser();
         seedOrder(ORDER_PENDING, "待发货", null);
@@ -127,7 +127,7 @@ class OrderDirectoryServiceTest {
     @Test
     void isEnabled_withMapper_shouldBeTrue() {
         assertTrue(service.isEnabled());
-        assertFalse(new OrderDirectoryService(providerOf(null)).isEnabled(), "无 Mapper 时应降级为未启用");
+        assertFalse(new OrderDirectoryServiceImpl(providerOf(null)).isEnabled(), "无 Mapper 时应降级为未启用");
     }
 
     // ---- 夹具 ----

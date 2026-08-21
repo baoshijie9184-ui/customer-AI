@@ -34,7 +34,7 @@ class DevToolCalcServiceTest {
         + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ"
         + ".SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
-    private final DevToolCalcService service = new DevToolCalcService();
+    private final DevToolCalcService service = new DevToolCalcServiceImpl();
 
     // ---------- cron ----------
 

@@ -51,7 +51,7 @@ class SqlDatasourceServiceTest {
         defineMapper = mock(SqlDefineMapper.class);
         connectionManager = mock(SqlDatasourceConnectionManager.class);
         cryptoUtil = new AesGcmCryptoUtil("0123456789abcdef");
-        service = new SqlDatasourceService(datasourceMapper, defineMapper, cryptoUtil, connectionManager);
+        service = new SqlDatasourceServiceImpl(datasourceMapper, defineMapper, cryptoUtil, connectionManager);
     }
 
     @Test

@@ -24,29 +24,31 @@ spring:
       sticky-session:
         add-service-instance-cookie: true
     gateway:
-      # 路由规则：按路径前缀反向代理，StripPrefix=1 去掉网关前缀后转发给后端真实路径。
-      routes:
-        # 后台管理 API：/admin/api/system/user → lb://customer-admin-server 的 /api/system/user
-        - id: customer-admin-server
-          uri: lb://customer-admin-server
-          predicates:
-            - Path=/admin/**
-          filters:
-            - StripPrefix=1
-        # 客服 API：StripPrefix=1 去掉 /app 前缀后转发后端真实路径。
-        # 例：/app/api/customer/user → /api/customer/user；/app/chat/stream → /chat/stream。
-        - id: customer-work-app-server
-          uri: lb://customer-work-app-server
-          predicates:
-            - Path=/app/**
-          filters:
-            - StripPrefix=1
-        # WebSocket 透传：/ws/user、/ws/agent 直连 app-server（ws:// scheme + lb 负载均衡）；
-        # 不 StripPrefix（后端 WS 处理器直接映射 /ws/user、/ws/agent）。webflux 网关原生支持 WS 升级握手透传。
-        - id: customer-work-app-server-ws
-          uri: lb:ws://customer-work-app-server
-          predicates:
-            - Path=/ws/**
+      server:
+        webflux:
+          # 路由规则：按路径前缀反向代理，StripPrefix=1 去掉网关前缀后转发给后端真实路径。
+          routes:
+            # 后台管理 API：/admin/api/system/user → lb://customer-admin-server 的 /api/system/user
+            - id: customer-admin-server
+              uri: lb://customer-admin-server
+              predicates:
+                - Path=/admin/**
+              filters:
+                - StripPrefix=1
+            # 客服 API：StripPrefix=1 去掉 /app 前缀后转发后端真实路径。
+            # 例：/app/api/customer/user → /api/customer/user；/app/chat/stream → /chat/stream。
+            - id: customer-work-app-server
+              uri: lb://customer-work-app-server
+              predicates:
+                - Path=/app/**
+              filters:
+                - StripPrefix=1
+            # WebSocket 透传：/ws/user、/ws/agent 直连 app-server（ws:// scheme + lb 负载均衡）；
+            # 不 StripPrefix（后端 WS 处理器直接映射 /ws/user、/ws/agent）。webflux 网关原生支持 WS 升级握手透传。
+            - id: customer-work-app-server-ws
+              uri: lb:ws://customer-work-app-server
+              predicates:
+                - Path=/ws/**
 
 # SSE/流式：webflux 网关默认不缓冲响应体，chat 流（如 /app/chat/stream → /chat/stream）天然透传，无需额外配置。
 management:

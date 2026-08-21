@@ -4,8 +4,8 @@ import com.richard.fyoung.customerwork.capability.deadletter.DeadLetterStatus;
 import com.richard.fyoung.customerwork.capability.deadletter.DeadLetterStore;
 import com.richard.fyoung.customerwork.infra.config.CustomerWorkProperties;
 import com.richard.fyoung.customerwork.safety.tenant.CrossTenantOperations;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.HealthIndicator;
 
 /**
  * 可靠投递队列健康检查：暴露积压与放弃数量，但不因单个下游故障把所有业务 Pod 摘掉。

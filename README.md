@@ -3,7 +3,7 @@
 [![CI](https://github.com/liulangjietou/customer_work/actions/workflows/ci.yml/badge.svg)](https://github.com/liulangjietou/customer_work/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-17%2B-orange.svg)](docs/新人必读.md)
-[![AgentScope](https://img.shields.io/badge/AgentScope-2.0.0%20GA-green.svg)](https://github.com/agentscope-ai/agentscope-java)
+[![AgentScope](https://img.shields.io/badge/AgentScope-2.0.2-green.svg)](https://github.com/agentscope-ai/agentscope-java)
 
 > 🚀 **新人从这里开始**：[docs/新人必读.md](docs/新人必读.md)（15 分钟跑起来 + 看懂结构 + 知道改哪里）
 > 📚 **功能 / 配置 / 接口的全部细节**：[docs/功能与配置全量参考.md](docs/功能与配置全量参考.md)（本 README 只讲"是什么、长什么样"，"怎么用"都在那里）
@@ -13,7 +13,7 @@
 **把一张典型的客服业务流程图，落成一套可上生产的代码**：从接入与流量治理、会话恢复、意图识别与路由、
 七域业务工具执行，到人工审批 / 转人工工单的人机协作闭环，再到质检反馈驱动的数据飞轮——全链路可运行、可测试、可部署。
 
-- **技术底座**：`io.agentscope:agentscope-harness:2.0.0`（GA 正式版），模型默认对接**阿里云百炼（DashScope / 通义千问）**，
+- **技术底座**：`io.agentscope:agentscope-harness:2.0.2`，模型默认对接**阿里云百炼（DashScope / 通义千问）**，
   完整用上 2.0 新能力（Permission / Plan Mode / Compaction / Sandbox / Subagent / 五段 Middleware）。
 - **设计原则**：**每个能力 = 一个配置开关 + 一个可替换实现**。默认内置实现保证离线开箱即用、单测全绿；
   改一行配置或声明一个 Bean，即可切到 Redis / MySQL / 百炼 / Nacos 等真实后端，业务代码零改动。
@@ -288,7 +288,7 @@ timeline
 
 - **分支策略**：`main` 有分支保护、禁止直接 push，开发从 `main` 切分支走 PR；`legacy-main-1.0.12` 标签与
   `rc2.0` 分支为历史存档，不再更新。
-- 基于官方 GA 坐标 `io.agentscope:agentscope-harness:2.0.0`（`agentscope-bom` 统一管理版本）；框架高速迭代，
+- 基于官方坐标 `io.agentscope:agentscope-harness:2.0.2`（`agentscope-bom` 统一管理版本）；框架高速迭代，
   升级遇 API 不匹配请对照该版本源码微调。
 - API Key 支持配置项与环境变量两种来源，**生产请用环境变量注入**，勿把密钥留在仓库。
 - 客服业务库由 starter 的 Flyway 管理；存量非空库以版本 `0` 接管后顺序执行增量迁移，迁移失败会阻断启动。

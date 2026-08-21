@@ -104,7 +104,7 @@ class AgentServiceTest {
         AgentInstanceCache agentInstanceCache = mock(AgentInstanceCache.class);
         com.richard.fyoung.customeradmin.aiconfig.channel.publish.CustomerWorkConfigPublisher runtimeConfigPublisher =
             mock(com.richard.fyoung.customeradmin.aiconfig.channel.publish.CustomerWorkConfigPublisher.class);
-        service = new AgentService(agentMapper, agentMcpMapper, agentSkillMapper, agentBackupModelMapper,
+        service = new AgentServiceImpl(agentMapper, agentMcpMapper, agentSkillMapper, agentBackupModelMapper,
             agentSubAgentMapper, modelConfigMapper, mcpMapper, skillMapper, agentSystemToolMapper, systemToolMapper,
             agentKnowledgeBaseMapper, knowledgeBaseMapper,
             menuVersionHolder, agentInstanceCache, modelConfigService, runtimeConfigPublisher);

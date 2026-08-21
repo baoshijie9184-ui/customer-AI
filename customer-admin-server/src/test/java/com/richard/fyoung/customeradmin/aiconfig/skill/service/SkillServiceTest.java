@@ -72,7 +72,7 @@ class SkillServiceTest {
 
     /** 用给定发布器组装 Service。 */
     private SkillService serviceWith(SkillContentPublisher... publishers) {
-        return new SkillService(skillMapper, skillFileMapper, agentSkillMapper, agentMapper,
+        return new SkillServiceImpl(skillMapper, skillFileMapper, agentSkillMapper, agentMapper,
             agentInstanceCache, List.of(publishers));
     }
 

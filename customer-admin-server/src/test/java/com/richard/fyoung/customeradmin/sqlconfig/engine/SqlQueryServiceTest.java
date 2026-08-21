@@ -46,7 +46,7 @@ class SqlQueryServiceTest {
     private SqlDefineParamMapper paramMapper;
     private SqlFieldTransformMapper transformMapper;
     private SqlDatasourceConnectionManager connectionManager;
-    private SqlQueryService service;
+    private SqlQueryServiceImpl service;
 
     @BeforeAll
     static void initLambdaCache() {
@@ -64,14 +64,14 @@ class SqlQueryServiceTest {
         AdminSqlConfigProperties properties = new AdminSqlConfigProperties();
         properties.setMaxRows(2000);
         properties.setQueryTimeoutSeconds(30);
-        service = new SqlQueryService(defineMapper, paramMapper, transformMapper, connectionManager, fieldTransformer, properties);
+        service = new SqlQueryServiceImpl(defineMapper, paramMapper, transformMapper, connectionManager, fieldTransformer, properties);
     }
 
     @Test
     void computeOffset_shouldBeZeroBasedPageMath() {
-        assertEquals(0L, SqlQueryService.computeOffset(1, 10));
-        assertEquals(20L, SqlQueryService.computeOffset(3, 10));
-        assertEquals(0L, SqlQueryService.computeOffset(0, 10));
+        assertEquals(0L, SqlQueryServiceImpl.computeOffset(1, 10));
+        assertEquals(20L, SqlQueryServiceImpl.computeOffset(3, 10));
+        assertEquals(0L, SqlQueryServiceImpl.computeOffset(0, 10));
     }
 
     @Test

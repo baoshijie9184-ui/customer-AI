@@ -64,7 +64,7 @@ class KnowledgeRetrievalServiceTest {
         agentKnowledgeBaseMapper = mock(AiAgentKnowledgeBaseMapper.class);
         knowledgeBaseMapper = mock(AiKnowledgeBaseMapper.class);
         searchClient = mock(KnowledgeSearchClient.class);
-        service = new KnowledgeRetrievalService(agentMapper, agentKnowledgeBaseMapper, knowledgeBaseMapper,
+        service = new KnowledgeRetrievalServiceImpl(agentMapper, agentKnowledgeBaseMapper, knowledgeBaseMapper,
             new AesGcmCryptoUtil(TEST_SECRET_KEY), searchClient);
 
         AiAgent agent = new AiAgent();

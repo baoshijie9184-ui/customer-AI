@@ -24,6 +24,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -65,8 +66,8 @@ class KnowledgeServiceTest {
         }
     };
 
-    private KnowledgeService newService(AdminKnowledgeProperties properties) {
-        return new KnowledgeService(indexMapper, chunkMapper, embeddingStub, properties,
+    private KnowledgeServiceImpl newService(AdminKnowledgeProperties properties) {
+        return new KnowledgeServiceImpl(indexMapper, chunkMapper, embeddingStub, properties,
             modelFactory, modelConfigMapper, cryptoUtil, auditService);
     }
 
@@ -74,7 +75,7 @@ class KnowledgeServiceTest {
     void searchRanksByCosineAndAppliesTopK() throws Exception {
         AdminKnowledgeProperties properties = new AdminKnowledgeProperties();
         properties.setDefaultTopK(2);
-        KnowledgeService service = newService(properties);
+        KnowledgeServiceImpl service = newService(properties);
 
         AiCodeKnowledgeIndex index = new AiCodeKnowledgeIndex();
         index.setId(1L);
@@ -98,7 +99,7 @@ class KnowledgeServiceTest {
 
     @Test
     void searchOnNonReadyIndexFastFails() {
-        KnowledgeService service = newService(new AdminKnowledgeProperties());
+        KnowledgeServiceImpl service = newService(new AdminKnowledgeProperties());
         AiCodeKnowledgeIndex building = new AiCodeKnowledgeIndex();
         building.setId(2L);
         building.setStatus(AiCodeKnowledgeIndex.STATUS_BUILDING);
@@ -120,15 +121,15 @@ class KnowledgeServiceTest {
 
     @Test
     void collectChunksSkipsSymlinkFiles(@TempDir Path tempDir) throws Exception {
-        KnowledgeService service = newService(new AdminKnowledgeProperties());
+        KnowledgeServiceImpl service = newService(new AdminKnowledgeProperties());
         // 真实文件（应入库）+ 指向目录外敏感文件的软链（必须被跳过，否则宿主机任意文件会被读进库）
         Path realFile = tempDir.resolve("Real.java");
         Files.writeString(realFile, "public class Real { }\n");
         Path secret = Files.writeString(tempDir.getParent().resolve(tempDir.getFileName() + "-secret.java"),
             "public class Secret { }\n");
-        Files.createSymbolicLink(tempDir.resolve("Link.java"), secret);
+        createSymbolicLinkOrSkip(tempDir.resolve("Link.java"), secret);
 
-        List<KnowledgeService.PendingChunk> chunks = service.collectChunks(tempDir);
+        List<KnowledgeServiceImpl.PendingChunk> chunks = service.collectChunks(tempDir);
 
         assertTrue(chunks.stream().allMatch(c -> "Real.java".equals(c.path())),
             "only the real file should be chunked, got " + chunks);
@@ -142,17 +143,26 @@ class KnowledgeServiceTest {
         Path allowed = Files.createDirectories(tempDir.resolve("allowed"));
         Path outside = Files.createDirectories(tempDir.resolve("outside"));
         Files.writeString(outside.resolve("Escape.java"), "public class Escape { }\n");
-        Path link = Files.createSymbolicLink(allowed.resolve("link"), outside);
+        Path link = createSymbolicLinkOrSkip(allowed.resolve("link"), outside);
 
         AdminKnowledgeProperties properties = new AdminKnowledgeProperties();
         properties.setAllowedRoots(new ArrayList<>(List.of(allowed.toString())));
-        KnowledgeService service = newService(properties);
+        KnowledgeServiceImpl service = newService(properties);
 
         BizException ex = assertThrows(BizException.class, () -> service.resolveAndValidatePath(link.toString()));
         assertEquals(ResultCode.KNOWLEDGE_PATH_NOT_ALLOWED, ex.getResultCode());
 
         // 正例：白名单内的真实目录应放行（顺带覆盖 /tmp 本身是软链的 macOS 场景——两侧都走 toRealPath）
         assertEquals(allowed.toRealPath(), service.resolveAndValidatePath(allowed.toString()));
+    }
+
+    private static Path createSymbolicLinkOrSkip(Path link, Path target) throws Exception {
+        try {
+            return Files.createSymbolicLink(link, target);
+        } catch (UnsupportedOperationException | SecurityException | java.io.IOException e) {
+            assumeTrue(false, "当前系统不允许创建符号链接，跳过符号链接安全测试: " + e.getMessage());
+            throw e;
+        }
     }
 
     private AiCodeKnowledgeChunk chunk(String path, String symbol, String embeddingJson) {

@@ -66,7 +66,7 @@ class AgentCallStatsServiceTest {
         adminStore = mock(AgentCallLogStore.class);
         adminGateway = new AgentCallStatsGateway(adminExtMapper, adminLogMapper, adminSegmentMapper, adminStore);
         appProvider = mock(AppAgentCallStatsGatewayProvider.class);
-        service = new AgentCallStatsService(adminGateway, appProvider);
+        service = new AgentCallStatsServiceImpl(adminGateway, appProvider);
     }
 
     private String expectFormat(long millis) {

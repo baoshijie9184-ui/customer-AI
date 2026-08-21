@@ -5,6 +5,7 @@ import com.richard.fyoung.customerwork.core.memory.ContextMemoryFactory;
 import com.richard.fyoung.customerwork.core.memory.HarnessMemorySyncService;
 import com.richard.fyoung.customerwork.core.memory.InMemoryHarnessMemoryStore;
 import io.agentscope.core.ReActAgent;
+import io.agentscope.core.agent.RuntimeContext;
 import io.agentscope.core.model.Model;
 import io.agentscope.core.permission.PermissionContextState;
 import io.agentscope.core.permission.PermissionMode;
@@ -18,6 +19,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.richard.fyoung.customerwork.infra.config.properties.HarnessProperties;
+import com.richard.fyoung.customerwork.core.memory.HarnessMemorySyncServiceImpl;
 
 /**
  * Harness Agent 工厂单测（2.0 新增能力统一装配）：验证 {@code HarnessAgent.fromAgent(...)} 包装
@@ -38,6 +40,10 @@ class HarnessAgentFactoryTest {
 
         CustomerServiceAgentFactory agentFactory = mock(CustomerServiceAgentFactory.class);
         when(agentFactory.createAgent(anyString())).thenReturn(inner);
+        when(agentFactory.contextFor(anyString())).thenAnswer(invocation -> RuntimeContext.builder()
+            .userId("test-user")
+            .sessionId(invocation.getArgument(0))
+            .build());
 
         MultiAgentOrchestrator orchestrator = mock(MultiAgentOrchestrator.class);
         ContextMemoryFactory contextMemoryFactory = new ContextMemoryFactory(props, mock(Model.class));
@@ -45,7 +51,7 @@ class HarnessAgentFactoryTest {
             .mode(PermissionMode.DEFAULT).build();
 
         // 记忆同步走进程内存储：单测不连 MySQL，也不该在 target/ 下留记忆残留
-        HarnessMemorySyncService memorySync = new HarnessMemorySyncService(new InMemoryHarnessMemoryStore());
+        HarnessMemorySyncService memorySync = new HarnessMemorySyncServiceImpl(new InMemoryHarnessMemoryStore());
 
         return new HarnessAgentFactory(agentFactory, contextMemoryFactory, orchestrator,
             new InMemoryAgentStateStore(), permission, mock(Model.class), props, memorySync);

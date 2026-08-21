@@ -83,7 +83,7 @@ class HandoffStoreTest {
 
     @Test
     void handoffService_withStore_shouldDelegateAndAdvanceStateMachine() {
-        HandoffService svc = new HandoffService(store);
+        HandoffService svc = new HandoffServiceImpl(store);
 
         HandoffTicket created = svc.create("s1", "用户投诉升级");
         assertEquals(HandoffStatus.PENDING, created.getStatus());
@@ -104,7 +104,7 @@ class HandoffStoreTest {
 
     @Test
     void handoffService_defaultConstructor_shouldWork() {
-        HandoffService svc = new HandoffService();
+        HandoffService svc = new HandoffServiceImpl();
         HandoffTicket ticket = svc.create("s1", "test");
         assertEquals(HandoffStatus.PENDING, ticket.getStatus());
         assertEquals(1, svc.list().size());
@@ -112,7 +112,7 @@ class HandoffStoreTest {
 
     @Test
     void claim_alreadyClaimed_shouldFastFail() {
-        HandoffService svc = new HandoffService(store);
+        HandoffService svc = new HandoffServiceImpl(store);
         HandoffTicket ticket = svc.create("s1", "test");
         svc.claim(ticket.getId(), "alice");
 
@@ -121,7 +121,7 @@ class HandoffStoreTest {
 
     @Test
     void resolve_beforeClaim_shouldFastFail() {
-        HandoffService svc = new HandoffService(store);
+        HandoffService svc = new HandoffServiceImpl(store);
         HandoffTicket ticket = svc.create("s1", "test");
 
         assertThrows(IllegalStateException.class, () -> svc.resolve(ticket.getId(), "note"));
@@ -129,7 +129,7 @@ class HandoffStoreTest {
 
     @Test
     void resolve_afterResolved_shouldFastFail() {
-        HandoffService svc = new HandoffService(store);
+        HandoffService svc = new HandoffServiceImpl(store);
         HandoffTicket ticket = svc.create("s1", "test");
         svc.claim(ticket.getId(), "alice");
         svc.resolve(ticket.getId(), "done");
@@ -139,14 +139,14 @@ class HandoffStoreTest {
 
     @Test
     void claimOrResolve_notFound_shouldThrowNoSuchElement() {
-        HandoffService svc = new HandoffService(store);
+        HandoffService svc = new HandoffServiceImpl(store);
         assertThrows(NoSuchElementException.class, () -> svc.claim("HO-missing", "alice"));
         assertThrows(NoSuchElementException.class, () -> svc.resolve("HO-missing", "note"));
     }
 
     @Test
     void listByStatus_shouldDelegateToStore() {
-        HandoffService svc = new HandoffService(store);
+        HandoffService svc = new HandoffServiceImpl(store);
         svc.create("s1", "r1");
         HandoffTicket t2 = svc.create("s2", "r2");
         svc.claim(t2.getId(), "alice");

@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class DialogStageServiceTest {
 
-    private final DialogStageService svc = new DialogStageService();
+    private final DialogStageService svc = new DialogStageServiceImpl();
 
     @Test
     void current_shouldDefaultToGreeting() {

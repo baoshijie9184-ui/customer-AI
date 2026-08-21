@@ -62,7 +62,7 @@ class DeadLetterServiceTest {
     }
 
     private DeadLetterService serviceWith(DeadLetterHandler... handlers) {
-        return new DeadLetterService(store, properties, List.of(handlers));
+        return new DeadLetterServiceImpl(store, properties, List.of(handlers));
     }
 
     @Test

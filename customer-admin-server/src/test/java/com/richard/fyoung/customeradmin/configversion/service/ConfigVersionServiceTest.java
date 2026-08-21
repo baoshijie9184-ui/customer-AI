@@ -31,7 +31,7 @@ class ConfigVersionServiceTest {
     @BeforeEach
     void setUp() {
         versionMapper = mock(AiConfigVersionMapper.class);
-        service = new ConfigVersionService(versionMapper);
+        service = new ConfigVersionServiceImpl(versionMapper);
     }
 
     private AiConfigVersion existing(int version, String hash, String status) {

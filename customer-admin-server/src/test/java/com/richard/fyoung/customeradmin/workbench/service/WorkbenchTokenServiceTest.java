@@ -46,7 +46,7 @@ class WorkbenchTokenServiceTest {
     @BeforeEach
     void setUp() {
         tokenMapper = mock(WorkbenchTokenMapper.class);
-        service = new WorkbenchTokenService(tokenMapper);
+        service = new WorkbenchTokenServiceImpl(tokenMapper);
     }
 
     @Test

@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import com.richard.fyoung.customerwork.data.outbox.OutboxServiceImpl;
 
 /** 门控测试：工单、审计事件和 Outbox 必须同成同败。 */
 class TicketOutboxTransactionIntegrationTest {
@@ -55,7 +56,7 @@ class TicketOutboxTransactionIntegrationTest {
             MybatisTicketStore ticketStore = new MybatisTicketStore(
                 template.getMapper(com.richard.fyoung.customerwork.data.ticket.mapper.TicketMapper.class),
                 template.getMapper(com.richard.fyoung.customerwork.data.ticket.mapper.TicketEventMapper.class));
-            OutboxService outboxService = new OutboxService(
+            OutboxService outboxService = new OutboxServiceImpl(
                 new MybatisOutboxStore(template.getMapper(OutboxMessageMapper.class)),
                 new OutboxProperties(), List.of());
             OutboxTicketEventPublisher delegate = new OutboxTicketEventPublisher(outboxService, new ObjectMapper());
@@ -68,14 +69,14 @@ class TicketOutboxTransactionIntegrationTest {
                 delegate.publish(ticket, event);
                 throw new IllegalStateException("simulated publish failure");
             };
-            TicketService failingService = new TicketService(ticketStore, failingPublisher, executor);
+            TicketService failingService = new TicketServiceImpl(ticketStore, failingPublisher, executor);
             assertThrows(IllegalStateException.class, () -> failingService.createForSession(
                 "S-ROLLBACK", "U-1", "rollback", TicketCategory.ORDER));
             assertEquals(0, count(dataSource, "cw_ticket"));
             assertEquals(0, count(dataSource, "cw_ticket_event"));
             assertEquals(0, count(dataSource, "cw_outbox_message"));
 
-            TicketService service = new TicketService(ticketStore, delegate, executor);
+            TicketService service = new TicketServiceImpl(ticketStore, delegate, executor);
             service.createForSession("S-COMMIT", "U-1", "commit", TicketCategory.ORDER);
             assertEquals(1, count(dataSource, "cw_ticket"));
             assertEquals(1, count(dataSource, "cw_ticket_event"));
@@ -114,7 +115,7 @@ class TicketOutboxTransactionIntegrationTest {
                     handledTenant.set(TenantContext.require());
                 }
             };
-            OutboxService service = new OutboxService(store, new OutboxProperties(), List.of(handler));
+            OutboxService service = new OutboxServiceImpl(store, new OutboxProperties(), List.of(handler));
 
             TenantContext.runWith("tenant-a", () -> service.publish("tenant-probe", "TK-1", "{}"));
             assertEquals("tenant-a", scalar(dataSource,

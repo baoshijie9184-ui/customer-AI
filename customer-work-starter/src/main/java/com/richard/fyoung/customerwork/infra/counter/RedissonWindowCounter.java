@@ -65,7 +65,7 @@ public class RedissonWindowCounter implements WindowCounter {
         long windowMs = windowSeconds * 1000L;
         String redisKey = fixedWindowKey(key, windowMs);
         try {
-            Long value = eval(FIXED_WINDOW_SCRIPT, RScript.ReturnType.INTEGER, List.of(redisKey),
+            Long value = eval(FIXED_WINDOW_SCRIPT, RScript.ReturnType.LONG, List.of(redisKey),
                 String.valueOf(delta), String.valueOf(windowMs * 2));
             return value == null ? delta : value;
         } catch (Exception e) {
@@ -103,7 +103,7 @@ public class RedissonWindowCounter implements WindowCounter {
         // member 必须唯一，否则同一毫秒内的两个请求会被 ZADD 当成同一个成员覆盖掉一个
         String member = now + "-" + ThreadLocalRandom.current().nextLong(Long.MAX_VALUE);
         try {
-            Long allowed = eval(SLIDING_WINDOW_SCRIPT, RScript.ReturnType.INTEGER, List.of(keyPrefix + key),
+            Long allowed = eval(SLIDING_WINDOW_SCRIPT, RScript.ReturnType.LONG, List.of(keyPrefix + key),
                 String.valueOf(now - windowMs), String.valueOf(limit),
                 String.valueOf(now), member, String.valueOf(windowMs * 2));
             return allowed != null && allowed == 1L;

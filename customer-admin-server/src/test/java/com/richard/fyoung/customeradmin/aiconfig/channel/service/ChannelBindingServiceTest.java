@@ -33,7 +33,7 @@ class ChannelBindingServiceTest {
         bindingMapper = mock(AiChannelBindingMapper.class);
         agentMapper = mock(AiAgentMapper.class);
         CustomerWorkConfigPublisher publisher = mock(CustomerWorkConfigPublisher.class);
-        service = new ChannelBindingService(bindingMapper, agentMapper, publisher);
+        service = new ChannelBindingServiceImpl(bindingMapper, agentMapper, publisher);
         when(agentMapper.selectById(1L)).thenReturn(new AiAgent());
     }
 

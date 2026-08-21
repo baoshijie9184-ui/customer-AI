@@ -34,7 +34,7 @@ class AguiServiceTest {
 
     @Test
     void buildInput_shouldCarrySessionAndMessage() {
-        AguiService service = new AguiService(
+        AguiServiceImpl service = new AguiServiceImpl(
             Mockito.mock(CustomerServiceAgentFactory.class), new CustomerWorkProperties());
 
         RunAgentInput input = service.buildInput("tenantA:conv-1", "查询订单");

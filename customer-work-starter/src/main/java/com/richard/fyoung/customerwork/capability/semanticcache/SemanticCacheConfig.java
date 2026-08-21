@@ -87,7 +87,7 @@ public class SemanticCacheConfig {
             log.error("semantic cache enabled but no EmbeddingClient available, errorCode={}",
                 "SEMCACHE-NO-EMBEDDING");
         }
-        return new SemanticCacheService(store, embeddingClient, orchestrator, tenantResolver,
+        return new SemanticCacheServiceImpl(store, embeddingClient, orchestrator, tenantResolver,
             properties.getSemanticCache());
     }
 }

@@ -67,7 +67,7 @@ class ModelConfigServiceTest {
         AesGcmCryptoUtil cryptoUtil = new AesGcmCryptoUtil("0123456789abcdef");
         com.richard.fyoung.customeradmin.aiconfig.channel.publish.CustomerWorkConfigPublisher runtimeConfigPublisher =
             mock(com.richard.fyoung.customeradmin.aiconfig.channel.publish.CustomerWorkConfigPublisher.class);
-        service = new ModelConfigService(mapper, agentMapper, agentBackupModelMapper, cryptoUtil, modelFactory,
+        service = new ModelConfigServiceImpl(mapper, agentMapper, agentBackupModelMapper, cryptoUtil, modelFactory,
             agentInstanceCache, runtimeConfigPublisher);
     }
 

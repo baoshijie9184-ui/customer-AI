@@ -50,7 +50,7 @@ class LoginCarouselImageServiceTest {
     void setUp() {
         imageMapper = mock(LoginCarouselImageMapper.class);
         storageService = mock(LoginImageStorageService.class);
-        service = new LoginCarouselImageService(imageMapper, storageService);
+        service = new LoginCarouselImageServiceImpl(imageMapper, storageService);
     }
 
     private LoginCarouselImage image(long id, int sortOrder, int enabled) {

@@ -1,7 +1,7 @@
 # 生产 profile 配置参考：用环境变量驱动外部后端，激活方式 SPRING_PROFILES_ACTIVE=prod
 #
 # 本文件是「生产配置基线」，逐项对应 agentscope-java（RC4 时点核对的）open issues 的缓解/规避手段；
-# 2.0.0 GA 已发布（ga2.0 分支），本文件配置项本身未受 RC4→GA 升级影响，见 docs/MIGRATION-2.0.md「9」节。
+# 当前运行版本为 2.0.2；Workspace/Harness 配置见 docs/MIGRATION-2.0.md。
 # 完整评估结论见 docs/生产就绪评估.md；本文件只做配置层面的落地，不改变 customer-work 业务代码。
 # 所有键名已对照 CustomerWorkProperties.java 逐一核实，均为真实存在的配置项（无杜撰键）。
 
@@ -56,15 +56,17 @@ customer-work:
     provider: ${RAG_PROVIDER:memory}
 
   # ------------------------------------------------------------------
-  # Harness 子智能体编排：生产先关闭
-  # 规避 #1954 / #1953 / #1700 / #1911 —— 子智能体在部分场景下存在跳过执行、
-  # 父子上下文不传递、子智能体资源不回收等问题，经核实截至 2.0.0 GA（2026-07-10）仍为 open 状态，未修复。
-  # 生产阶段需要的"可控并行多专家协作"改走本项目自研的 MultiAgentOrchestrator
-  # （真并发 fanout + 路由 + reduce 归纳，已有确定性单测覆盖），不依赖框架原生 subagent。
+  # 2.0.2 客户 Workspace/Harness。具体能力仍由 RBAC/Permission 和以下开关共同决定。
   # ------------------------------------------------------------------
   harness:
+    enabled: ${CUSTOMER_WORK_HARNESS_ENABLED:true}
+    workspace-dir: ${AGENTSCOPE_WORKSPACE:${java.io.tmpdir}/customer-work/workspace}
+    max-context-tokens: ${CUSTOMER_WORK_WORKSPACE_MAX_CONTEXT_TOKENS:8000}
+    agent-tracing-log-enabled: ${CUSTOMER_WORK_AGENT_TRACING_LOG_ENABLED:true}
+    memory-enabled: ${CUSTOMER_WORK_HARNESS_MEMORY_ENABLED:false}
+    skill-curator-enabled: ${CUSTOMER_WORK_SKILL_CURATOR_ENABLED:false}
     subagent:
-      enabled: false
+      enabled: ${CUSTOMER_WORK_SUBAGENT_ENABLED:false}
     # 权限系统：生产建议开启，ask-tools 保持默认（退款/转人工需人工确认），与应用层审批闭环双保险
     permission:
       enabled: true
@@ -73,8 +75,8 @@ customer-work:
       deny-tools: []
     # 若需要沙箱隔离工具/代码执行，隔离粒度用 session（按会话隔离，避免跨会话串扰）
     sandbox:
-      mode: ${HARNESS_SANDBOX_MODE:none}
-      isolation-scope: session
+      mode: ${CUSTOMER_WORK_SANDBOX_MODE:none}
+      isolation-scope: ${CUSTOMER_WORK_SANDBOX_ISOLATION_SCOPE:session}
 
   # ------------------------------------------------------------------
   # 上下文压缩（Compaction）：生产开启，但阈值须保守
